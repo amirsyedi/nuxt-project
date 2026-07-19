@@ -1,76 +1,73 @@
 import { users } from '~~/server/db/schema';
 import { db } from '~~/server/utils/db';
-// import { verifyPassword } from '~~/server/utils/crypto';
-import { eq, or } from 'drizzle-orm';
+import { eq, or } from 'drizzle-orm'; // 1. Import 'or' from Drizzle
+import bcrypt from 'bcryptjs';
 
 export default defineEventHandler(async (event) => {
   const body = await readBody(event);
+  
+  // 2. Accept 'identifier' instead of just 'username'
   const { identifier, password } = body;
+console.log("identifier",identifier);
 
-  // 1. Validate incoming inputs
+  // Basic validation check
   if (!identifier || !password) {
     throw createError({
       statusCode: 400,
-      statusMessage: 'Username/Email and password are required.',
+      statusMessage: 'Bad Request',
+      message: 'Identifier (Username/Email) and password are required.',
     });
   }
 
   try {
-    // 2. Query MySQL matching either the username OR the email address
-    const [user] = await db
+    const cleanIdentifier = identifier.trim();
+
+    // 3. Look up the user by matching the identifier against BOTH username and email columns
+    const [foundUser] = await db
       .select()
       .from(users)
       .where(
         or(
-          eq(users.email, identifier.toLowerCase().trim()),
-          eq(users.username, identifier.trim())
+          eq(users.username, cleanIdentifier),
+          eq(users.email, cleanIdentifier.toLowerCase())
         )
       )
       .limit(1);
 
-    // 3. Prevent user guessing by returning a generic message if email/username doesn't exist
-    if (!user) {
+    // 4. Verify user exists and check password hash matches
+    if (!foundUser || !bcrypt.compareSync(password.trim(), foundUser.password)) {
       throw createError({
         statusCode: 401,
-        statusMessage: 'Invalid username, email, or password.',
+        statusMessage: 'Unauthorized',
+        message: 'Invalid credentials provided.',
       });
     }
 
-    // 4. Verify the incoming password against our secure database hash string
-    // const isPasswordValid = verifyPassword(password, user.password);
-    if (password != user.password) {
-      throw createError({
-        statusCode: 401,
-        statusMessage: 'Invalid username, email, or password.',
-      });
-    }
-
-    // 5. Destructure the user object to strip out the password hash before responding
-    const { password: _, ...safeUser } = user;
-
-    // 🔥 Added: Establish and encrypt the session cookie using nuxt-auth-utils helper
+    // 5. Establish session
     await setUserSession(event, {
-      user: safeUser,
-      loggedInAt: new Date(),
+      user: {
+        id: foundUser.id,
+        username: foundUser.username,
+        email: foundUser.email,
+        fullName: foundUser.fullName,
+        department: foundUser.department,
+        role: foundUser.role,
+      },
     });
 
-    // 6. Return successful authentication payload
-    return {
+    return { 
       success: true,
-      message: 'Login successful!',
-      user: safeUser, // Safely returns id, username, email, fullName, department, and createdAt
+      message: 'Logged in successfully!'
     };
 
   } catch (error: any) {
-    // Critical Server Log for runtime database debugging
-    console.error('❌ Authentication Failure:', error);
-    
-    // Pass along any direct h3 error exceptions thrown above
     if (error.statusCode) throw error;
 
+    console.error('❌ Login Failure Error:', error);
     throw createError({
       statusCode: 500,
-      statusMessage: `An internal server error occurred during login: ${error.message || error}`,
+      statusMessage: 'Internal Server Error',
+      message: 'An error occurred during authentication.',
     });
   }
 });

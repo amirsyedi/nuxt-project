@@ -8,4 +8,5 @@ export const users = mysqlTable('users', {
   fullName: varchar('full_name', { length: 255 }).notNull(),         // Added
   department: varchar('department', { length: 150 }).notNull(),       // Added
   createdAt: timestamp('created_at').defaultNow().notNull(),
+  role: varchar('role', { length: 50 }).notNull().default('Staff'),
 });

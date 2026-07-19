@@ -42,10 +42,10 @@
             <select
               v-else-if="field.type === 'select'"
               :id="field.name"
-              v-model="modelValue[field.name]"
+              v-model="formData[field.name]"
               class="px-3.5 py-2.5 border border-gray-300 rounded-md text-base bg-white outline-none transition duration-200 focus:border-blue-400 focus:ring-3 focus:ring-blue-400/15"
             >
-              <option value="" disabled selected>Sila pilih...</option>
+              <option value="" disabled>Sila pilih...</option>
               <option 
                 v-for="opt in field.options" 
                 :key="opt.value" 
@@ -55,39 +55,56 @@
               </option>
             </select>
 
-            <!-- Standard Inputs (text, email, etc) -->
+            <!-- Standard Inputs (text, email, password, etc) -->
             <input
               v-else
               :id="field.name"
               :type="field.type"
-              v-model="modelValue[field.name]"
+              v-model="formData[field.name]"
               class="px-3.5 py-2.5 border border-gray-300 rounded-md text-base outline-none transition duration-200 focus:border-blue-400 focus:ring-3 focus:ring-blue-400/15"
             />
           </div>
         </div>
       </div>
     </fieldset>
-
-    <!-- Optional submit button slot -->
-    <!-- <div class="flex justify-end">
-      <button 
-        type="submit" 
-        class="bg-blue-600 hover:bg-blue-500 text-white font-medium py-2.5 px-6 rounded-lg text-sm transition shadow-sm"
-      >
-        Simpan Profil
-      </button>
-    </div> -->
   </form>
 </template>
 
 <script setup>
+import { watch } from 'vue';
+
 const props = defineProps({
   schema: { type: Object, required: true },
-  modelValue: { type: Object, required: true },
+  rawData: { type: Object, default: () => null }
 });
+
+// Upgraded Vue 3.4+ Bidirectional Binding (Replaces old modelValue layout)
+const formData = defineModel({ type: Object, required: true });
 
 const emit = defineEmits(["form-submit"]);
 const handleSubmit = () => emit("form-submit");
+
+// Dynamic Auto-Mapping Watcher Engine with SSR safety guard check
+watch(() => props.rawData, (newDbData) => {
+  if (!newDbData) return; 
+
+  const mappedResult = { ...formData.value };
+
+  // Global property fallback safety rule
+  if (newDbData.role) mappedResult.role = newDbData.role;
+
+  props.schema.fieldSets.forEach(fieldset => {
+    fieldset.colGroups.forEach(group => {
+      group.fields.forEach(field => {
+        if (newDbData[field.name] !== undefined) {
+          mappedResult[field.name] = newDbData[field.name];
+        }
+      });
+    });
+  });
+
+  formData.value = mappedResult;
+}, { immediate: true, deep: true });
 
 const getColWidthClass = (width) => {
   const spans = { 6: "col-span-12 md:col-span-6", 12: "col-span-12" };
@@ -95,7 +112,7 @@ const getColWidthClass = (width) => {
 };
 
 const getSelectedLabel = (field) => {
-  const value = props.modelValue[field.name];
+  const value = formData.value[field.name];
   if (field.type === 'select' && field.options) {
     const matchingOption = field.options.find(opt => opt.value === value);
     return matchingOption ? matchingOption.label : value;

@@ -10,7 +10,8 @@
     >
       <DynamicForm
         :schema="schemaForm"
-        v-model="data"
+        :form-raw-data="apiData"
+        v-model="apiData"
       >
       </DynamicForm>
     </MainModal>
@@ -30,7 +31,8 @@
       <!-- Your Dynamic Form Component integrates here -->
       <DynamicForm
         :schema="schemaForm"
-        v-model="data"
+        :form-raw-data="apiData"
+        v-model="apiData"
         @form-submit="saveProfile"
       />
 
@@ -108,7 +110,7 @@ const schemaForm = {
               type: "select",
               viewOnly: false,
               options: [
-                { value: "it", label: "Teknologi Maklumat (IT)" },
+                { value: "IT", label: "Teknologi Maklumat (IT)" },
                 { value: "hr", label: "Sumber Manusia (HR)" },
                 { value: "finance", label: "Kewangan" },
               ],
@@ -120,14 +122,7 @@ const schemaForm = {
   ],
 };
 
-// 2. Hydrate form inputs with fallback values from your active session user object
-const data = ref({
-  username: user.value?.username || "admin",
-  role: "Administrator",
-  fullName: user.value?.fullName || "Mohamad Amr",
-  email: user.value?.email || "amr@example.com",
-  department: user.value?.department || "it",
-});
+const { data: apiData } = await useFetch("/api/users/me");
 
 // 3. Handle data saving trigger event actions
 const saveProfile = async () => {

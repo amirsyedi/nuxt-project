@@ -1,6 +1,6 @@
 import { users } from '~~/server/db/schema';
 import { db } from '~~/server/utils/db';
-// import { hashPassword } from '~~/server/utils/crypto';
+import bcrypt from 'bcryptjs'; // 1. Import bcryptjs
 
 // Dynamically infer the structural type expected by Drizzle for inserts
 type NewUserRequest = typeof users.$inferInsert;
@@ -20,14 +20,14 @@ export default defineEventHandler(async (event) => {
   }
 
   try {
-    // 2. Securely hash the password string using our crypto utility
-    // const hashedPassword = hashPassword(password);
+    // 2. Securely hash the password string using a salt work factor of 10
+    const hashedPassword = bcrypt.hashSync(password.trim(), 10);
 
     // 3. Save the new user row into your MySQL instance
     await db.insert(users).values({
       username: username.trim(),
       email: email.toLowerCase().trim(),
-      password: password.trim(),
+      password: hashedPassword, // 3. Pass the hashed password here instead of plain text
       fullName: fullName.trim(),
       department: department.trim(),
     });
