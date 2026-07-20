@@ -97,7 +97,7 @@
       </div>
 
       <div class="flex items-center space-x-4">
-        <span class="text-sm font-medium text-gray-700"> Hi, {{ user?.username || "User" }} </span>
+        <span class="text-sm font-medium text-gray-700"> Hi, {{ user?.fullName || "User" }} </span>
 
         <button
           @click="handleLogout"

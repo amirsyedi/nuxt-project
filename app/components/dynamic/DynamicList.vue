@@ -13,18 +13,28 @@
     </div>
     
     <!-- Responsive Table Viewport -->
-    <div class="overflow-x-auto">
-      <table class="w-full text-left text-sm text-gray-500">
+    <div class="w-full overflow-x-auto">
+      <table class="w-full text-left text-sm text-gray-500 table-auto">
         <thead class="bg-gray-50 text-xs text-gray-700 uppercase font-bold border-b border-gray-100">
           <tr>
+            <!-- Auto-Increment Number Column -->
+            <th class="px-4 py-3.5 tracking-wider text-center w-12">
+              No.
+            </th>
+            
+            <!-- Dynamic Columns with JSON width & alignment support -->
             <th 
               v-for="col in visibleColumns" 
               :key="col.key" 
-              class="px-6 py-3.5 tracking-wider"
+              class="px-6 py-3.5 tracking-wider whitespace-nowrap"
+              :class="getAlignClass(col.align)"
+              :style="col.width ? { width: col.width, minWidth: col.width } : {}"
             >
               {{ col.label }}
             </th>
-            <th v-if="hasVisibleActions" class="px-6 py-3.5 text-right tracking-wider">
+
+            <!-- Actions Header (Centered by Default) -->
+            <th v-if="hasVisibleActions" class="px-6 py-3.5 text-center tracking-wider w-36 whitespace-nowrap">
               Actions
             </th>
           </tr>
@@ -37,16 +47,24 @@
             :key="row.id || rowIndex" 
             class="hover:bg-gray-50/70 transition duration-150"
           >
+            <!-- Auto Increment Row Number -->
+            <td class="px-4 py-4 text-center font-mono text-xs font-bold text-slate-400">
+              {{ startIndex + rowIndex + 1 }}
+            </td>
+
+            <!-- Content Cells with JSON width & alignment support -->
             <td 
               v-for="col in visibleColumns" 
               :key="col.key" 
-              class="px-6 py-4 whitespace-nowrap"
+              class="px-6 py-4 break-words"
+              :class="getAlignClass(col.align)"
+              :style="col.width ? { width: col.width, minWidth: col.width } : {}"
             >
               <!-- Badge Formatter Check -->
               <span 
                 v-if="col.type === 'badge'"
                 :class="[
-                  'px-2.5 py-1 text-xs font-black rounded-lg border',
+                  'inline-block px-2.5 py-1 text-xs font-black rounded-lg border whitespace-nowrap',
                   row[col.key] === 'Production' ? 'bg-emerald-50 text-emerald-700 border-emerald-100' : 'bg-amber-50 text-amber-700 border-amber-100'
                 ]"
               >
@@ -58,16 +76,16 @@
                 v-else
                 :class="[
                   col.isBold ? 'font-bold text-slate-900' : 'text-slate-600',
-                  col.isMono ? 'font-mono text-xs text-slate-400 bg-gray-50 px-1.5 py-1 rounded border border-gray-100' : ''
+                  col.isMono ? 'inline-block font-mono text-xs text-slate-400 bg-gray-50 px-1.5 py-1 rounded border border-gray-100' : ''
                 ]"
               >
                 {{ row[col.key] || '—' }}
               </span>
             </td>
 
-            <!-- Dynamic Button Rows Parsing Block -->
-            <td v-if="hasVisibleActions" class="px-6 py-4 whitespace-nowrap text-xs font-bold text-right">
-              <div class="flex items-center justify-end gap-4">
+            <!-- Dynamic Button Actions Cell (Centered by Default) -->
+            <td v-if="hasVisibleActions" class="px-6 py-4 text-xs font-bold text-center align-middle whitespace-nowrap">
+              <div class="flex items-center justify-center gap-3">
                 <template v-for="btn in actions" :key="btn.name">
                   <button 
                     v-if="!shouldHideAction(btn, row)"
@@ -88,7 +106,7 @@
           </tr>
           
           <tr v-if="data.length === 0">
-            <td :colspan="visibleColumns.length + (hasVisibleActions ? 1 : 0)" class="px-6 py-16 text-center text-gray-400 text-xs tracking-wide">
+            <td :colspan="visibleColumns.length + 1 + (hasVisibleActions ? 1 : 0)" class="px-6 py-16 text-center text-gray-400 text-xs tracking-wide">
               No record.
             </td>
           </tr>
@@ -147,28 +165,24 @@
 <script setup>
 import { ref, computed, watch } from 'vue'
 
-
 const props = defineProps({
   title: { type: String, default: 'System Table Log' },
   schema: { type: Array, required: true },
   data: { type: Array, required: true },
   actions: { type: Array, default: () => [] },
-  perPage: { type: Number, default: 5 } // New customization setting variable metric
+  perPage: { type: Number, default: 5 }
 })
 
 const currentPage = ref(1)
 
-// Reset viewport page back to 1 if user slices data stack array context references externally
 watch(() => props.data.length, () => {
   currentPage.value = 1
 })
 
-// Calculations indicators variables
 const totalPages = computed(() => Math.ceil(props.data.length / props.perPage))
 const startIndex = computed(() => (currentPage.value - 1) * props.perPage)
 const endIndex = computed(() => startIndex.value + props.perPage)
 
-// Runtime dynamic slice algorithm calculations mapping array loops
 const paginatedData = computed(() => {
   return props.data.slice(startIndex.value, endIndex.value)
 })
@@ -185,5 +199,17 @@ const hasVisibleActions = computed(() => {
 const shouldHideAction = (btn, row) => {
   if (typeof btn.hide === 'function') return btn.hide(row)
   return !!btn.hide
+}
+
+const getAlignClass = (align) => {
+  switch (align) {
+    case 'center':
+      return 'text-center'
+    case 'right':
+      return 'text-right'
+    case 'left':
+    default:
+      return 'text-left'
+  }
 }
 </script>

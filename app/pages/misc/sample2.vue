@@ -28,8 +28,8 @@ definePageMeta({
 
 
 const myTableSchema = ref([
-  { key: "id", label: "Log UUID", isMono: true },
-  { key: "service", label: "Microservice Target Module", isBold: true },
+  { key: "id", label: "Log UUID", isMono: true, isBold: true },
+  { key: "service", label: "Microservice Target Module", isMono: true },
   { key: "environment", label: "Layer Environment", type: "badge" },
 ]);
 
@@ -38,8 +38,8 @@ const myTableData = ref([
   { id: "LOG-002", service: "Geo-Tracking Telemetry Webhook Router", environment: "Production" },
   { id: "LOG-003", service: "SQL Pool Replication Database Service Sync", environment: "Staging" },
   { id: "LOG-004", service: "CDN Cache Purge Cron Task Automation Worker", environment: "Production" },
-  { id: "LOG-005", service: "SMS Validation Two-Factor Notification Gateway", environment: "Staging" },
-  { id: "LOG-006", service: "Payment Processing Microservice Webhook Engine", environment: "Production" },
+  { id: "LOG-005", service: "SMS Validation Two-Factor Notification Gateway ", environment: "Staging" },
+  { id: "LOG-006", service: "Payment Processing Microservice Webhook Engine Payment Processing Microservice Webhook Engine", environment: "Production" },
 ]);
 
 const myTableActions = [
