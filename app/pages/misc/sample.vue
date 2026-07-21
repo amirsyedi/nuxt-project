@@ -4,11 +4,11 @@
     <MainCard>
       <MainBreadcrumb />
       <!-- 1. Custom Reusable Cards Component -->
-      <DynamicCard :config="myCardsJson" />
+      <DynamicCard :config="schemaCard" />
 
       <!-- 2. Custom Reusable Table List Component -->
       <DynamicList
-        title="System Microservices Feed"
+        title="Record"
         :schema="myTableSchema"
         :data="myTableData"
         @action="onTableActionTriggered"
@@ -27,7 +27,31 @@ definePageMeta({
 
 const counter = ref(10);
 
-// Config JSON array sent down directly into the Cards component props
+const schemaCard = computed(() => [
+  [
+    {
+      title: "Card A124",
+      value: "1,240",
+      // theme: "dark",
+      description: "test"
+      // badge: { text: "Active", style: "success" },
+    },
+    {
+      title: "Card 1245",
+      value: "$4,500",
+      description: "Monthly recurring revenue",
+    },
+  ],
+  [
+    {
+      title: "TEST",
+      value: "I've learned that people will forget what you said, people will forget what you did, but people will never forget how you made them feel.",
+      description: "test"
+      // badge: { text: "Active", style: "success" },
+    },
+  ]
+]);
+
 const myCardsJson = computed(() => [
   { title: "Anual Leave", value: "356 Days", badge: { text: "Ok", style: "success" } },
   { title: "System Engine", value: "Active", theme: "light", badge: { text: "Online", style: "success" } },
