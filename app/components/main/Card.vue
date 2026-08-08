@@ -3,7 +3,7 @@
   <div 
     :class="[
       'bg-white border text-slate-600 transition-all duration-200 overflow-hidden',
-      flat ? 'border-gray-100 shadow-none' : 'border-gray-200/80 shadow-xs',
+      flat ? 'border-gray-100 shadow-none' : 'border-gray-200/80 shadow-md  ',
       hover ? 'hover:shadow-md hover:border-gray-300/80' : '',
       radiusClass
     ]"

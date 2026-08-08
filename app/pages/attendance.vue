@@ -1,6 +1,6 @@
 <!-- app/pages/attendance.vue -->
 <template>
-  <div class="space-y-6 max-w-6xl mx-auto p-4 lg:p-6">
+  <div class="space-y-6 max-w-auto p-4 lg:p-6">
     <MainCard>
       <MainBreadcrumb />
       <!-- Top Action Cards Matrix Grid (Using custom slots for explicit interactions) -->
