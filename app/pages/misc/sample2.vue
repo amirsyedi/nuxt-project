@@ -10,6 +10,7 @@
           :data="myTableData"
           :actions="myTableActions"
           :per-page="5"
+          :badge=false
           class="mt-6"
         />
       </MainCard>
@@ -47,12 +48,24 @@ const myTableActions = [
     name: "view",
     label: "Details",
     variant: "primary",
+    icon: 'view',
+    iconOnly: true,
+    handler: (row) => alert(`Selected UUID ID context reference item properties: ${row.id}`),
+  },
+    {
+    name: "edit",
+    label: "Edit",
+    variant: "success",
+    icon: 'edit',
+    iconOnly: true,
     handler: (row) => alert(`Selected UUID ID context reference item properties: ${row.id}`),
   },
   {
     name: "delete",
     label: "Drop",
     variant: "danger",
+    icon: 'delete',
+    iconOnly: true,
     handler: (rowItem) => {
       if (confirm(`Drop local tracking entry record index item reference code ${rowItem.id}?`)) {
         myTableData.value = myTableData.value.filter((item) => item.id !== rowItem.id);
