@@ -10,3 +10,13 @@ export const users = mysqlTable('users', {
   createdAt: timestamp('created_at').defaultNow().notNull(),
   role: varchar('role', { length: 50 }).notNull().default('Staff'),
 });
+
+export const attendance = mysqlTable('attendance', {
+  id: int('id').primaryKey().autoincrement(),
+  userId: int('user_id').notNull().references(() => users.id),
+  activityType: varchar('activity_type', { length: 100 }).notNull(),
+  logTime: timestamp('log_time').notNull(),
+  gpsCoordinates: varchar('gps_coordinates', { length: 100 }).notNull(),
+  distance: varchar('distance', { length: 255 }).notNull(),
+  createdAt: timestamp('created_at').defaultNow().notNull(),
+});

@@ -1,6 +1,9 @@
 <!-- app/pages/profile.vue -->
 <template>
   <div class="max-w-4xl mx-auto space-y-6">
+    <!-- <MainSpinner fullScreen v-if='isLoading'/> -->
+
+    <MainSpinner fullScreen v-if='isLoading' size="53px" color="#3498db" thickness="6px" />
     <!-- FIXED: Repaired modal markup syntax, tied v-model correctly, and added fallback content -->
     <MainModal
       v-model="isModalOpen"
@@ -51,6 +54,13 @@
         >
           Modal
         </button>
+        <button
+          type="button"
+          @click="testSpinner"
+          class="bg-blue-600 hover:bg-blue-500 text-white font-medium py-2.5 px-6 rounded-lg text-sm transition shadow-sm mx-1 cursor-pointer"
+        >
+          Spinner
+        </button>
       </div>
     </MainCard>
   </div>
@@ -67,10 +77,18 @@ definePageMeta({
 const { user } = useUserSession();
 const isSaved = ref(false);
 const isModalOpen = ref(false);
+const isLoading = ref(false);
 
 // FIXED: Added 'const' to define the arrow function, and used '.value' to mutate the ref
 const openModal = () => {
   isModalOpen.value = true;
+};
+
+const testSpinner = () => {
+  isLoading.value = true;
+  setTimeout(() => {
+    isLoading.value = false;
+  }, 2000);
 };
 
 // 1. Map out your custom input schema configuration block

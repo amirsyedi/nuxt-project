@@ -8,6 +8,13 @@
       "when": 1784279647985,
       "tag": "0000_wide_the_order",
       "breakpoints": true
+    },
+    {
+      "idx": 1,
+      "version": "5",
+      "when": 1787537387337,
+      "tag": "0001_chubby_titania",
+      "breakpoints": true
     }
   ]
 }

@@ -1,6 +1,6 @@
 <!-- app/pages/misc/history.vue -->
 <template>
-  <div class="space-y-6 max-w-7xl mx-auto p-6">
+  <div class="space-y-6">
     <section v-if="showList">
       <MainCard>
         <MainBreadcrumb />

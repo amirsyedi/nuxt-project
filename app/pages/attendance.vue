@@ -1,9 +1,10 @@
 <!-- app/pages/attendance.vue -->
 <template>
-  <div class="space-y-6 max-w-auto p-4 lg:p-6">
+  <div class="space-y-6">
+    <!-- {{ user }} -->
     <MainCard>
       <MainBreadcrumb />
-      <!-- Top Action Cards Matrix Grid (Using custom slots for explicit interactions) -->
+      <!-- Top Action Cards Matrix Grid -->
       <div class="grid grid-cols-1 md:grid-cols-3 gap-6">
         <!-- Card 1: Live Running Sync Clock System -->
         <div class="bg-blue-600 text-white rounded-2xl p-6 flex flex-col justify-between items-center text-center shadow-sm">
@@ -57,7 +58,7 @@
         </div>
       </div>
 
-      <!-- Attendance Historical Audit Log Feed (Refactored to Dynamic Reusable Table) -->
+      <!-- Attendance Historical Audit Log Feed -->
       <DynamicList
         title="Attendance Records History"
         :schema="tableSchema"
@@ -71,11 +72,13 @@
 
 <script setup>
 import { ref, onMounted, onBeforeUnmount } from "vue";
+import { useUserSession } from "#imports";
 
-// Basic layout routing protections configuration block
 definePageMeta({
   middleware: "auth",
 });
+
+const { user, clear } = useUserSession();
 
 const currentTimeString = ref("--:--:--");
 const currentDateString = ref("Loading date...");
@@ -114,9 +117,8 @@ const updateClock = () => {
   });
 };
 
-// Haversine calculation strategy layout mapping distance properties
 const calculateDistance = (lat1, lon1, lat2, lon2) => {
-  const R = 6371; // Earth radius constant value
+  const R = 6371;
   const dLat = ((lat2 - lat1) * Math.PI) / 180;
   const dLon = ((lon2 - lon1) * Math.PI) / 180;
   const a = Math.sin(dLat / 2) * Math.sin(dLat / 2) + Math.cos((lat1 * Math.PI) / 180) * Math.cos((lat2 * Math.PI) / 180) * Math.sin(dLon / 2) * Math.sin(dLon / 2);
@@ -157,23 +159,84 @@ const verifyLocation = () => {
   );
 };
 
-const handleClockAction = (actionType) => {
-  isClockedIn.value = actionType === "Clock In";
-  const now = new Date();
+// --- NEW: FETCH ATTENDANCE HISTORY ---
+const fetchAttendanceLogs = async () => {
+  try {
+    if (!user.value?.id) return;
 
-  attendanceLogs.value.unshift({
-    type: actionType,
-    date: now.toLocaleDateString("en-US", { year: "numeric", month: "2-digit", day: "2-digit" }),
-    time: now.toLocaleTimeString("en-US"),
-    coords: userCoordinates.lat && userCoordinates.lng ? `${userCoordinates.lat.toFixed(4)}, ${userCoordinates.lng.toFixed(4)}` : "Coordinate Error",
-    distance: currentDistanceCalculated,
-  });
+    // Fetch existing records from attendance.get.ts
+    const data = await $fetch('/api/attendance/attendance', {
+      params: { userId: user.value.id }
+    });
+
+    if (data && Array.isArray(data)) {
+      // Map API response to match the table schema format
+      attendanceLogs.value = data.map(log => {
+        const dateObj = new Date(log.logTime);
+        return {
+          type: log.activityType,
+          date: dateObj.toLocaleDateString("en-US", { year: "numeric", month: "2-digit", day: "2-digit" }),
+          time: dateObj.toLocaleTimeString("en-US"),
+          coords: log.gpsCoordinates,
+          distance: log.distance,
+        };
+      });
+
+      // Update button state based on the most recent log
+      if (attendanceLogs.value.length > 0) {
+        isClockedIn.value = attendanceLogs.value[0].type === "Clock In";
+      }
+    }
+  } catch (error) {
+    console.error('Failed to load attendance history:', error);
+  }
+};
+
+const handleClockAction = async (actionType) => {
+  const now = new Date();
+  
+  const coordsString = userCoordinates.lat && userCoordinates.lng 
+    ? `${userCoordinates.lat.toFixed(6)}, ${userCoordinates.lng.toFixed(6)}` 
+    : "Coordinate Error";
+
+  try {
+    const currentUserId = user.value.id; 
+
+    // Send data to the backend Nuxt API endpoint (handled by attendance.post.ts)
+    await $fetch('/api/attendance/attendance', {
+      method: 'POST',
+      body: {
+        userId: currentUserId,
+        activityType: actionType,
+        logTime: now.toISOString(),
+        gpsCoordinates: coordsString,
+        distance: currentDistanceCalculated,
+      }
+    });
+
+    isClockedIn.value = actionType === "Clock In";
+
+    // Prepend the new record locally
+    attendanceLogs.value.unshift({
+      type: actionType,
+      date: now.toLocaleDateString("en-US", { year: "numeric", month: "2-digit", day: "2-digit" }),
+      time: now.toLocaleTimeString("en-US"),
+      coords: coordsString,
+      distance: currentDistanceCalculated,
+    });
+
+  } catch (error) {
+    console.error('Failed to log attendance:', error);
+    const errorMessage = error.data?.statusMessage || 'Failed to submit attendance. Please try again.';
+    alert(errorMessage); 
+  }
 };
 
 onMounted(() => {
   updateClock();
   timerId = setInterval(updateClock, 1000);
   verifyLocation();
+  fetchAttendanceLogs(); // Load database logs immediately on mount
 });
 
 onBeforeUnmount(() => {
