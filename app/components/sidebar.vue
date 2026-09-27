@@ -1,5 +1,12 @@
 <template>
   <div>
+    <MainSpinner
+      fullScreen
+      :is-loading="isLoading"
+      size="53px"
+      color="#3498db"
+      thickness="6px"
+    />
     <!-- Mobile toggle button -->
     <div class="sticky top-0 z-40 flex h-16 shrink-0 items-center gap-x-4 border-b border-gray-200 bg-white px-4 shadow-sm sm:gap-x-6 sm:px-6 lg:hidden">
       <button
@@ -181,6 +188,13 @@
                     >
                       Profile
                     </NuxtLink>
+                    <button
+                      type="button"
+                      class="block w-full px-4 py-2 text-left text-sm text-gray-700 hover:bg-gray-100 hover:text-zinc-900 transition-colors"
+                      @click="logout"
+                    >
+                      Logout
+                    </button>
                   </div>
                 </div>
               </transition>
@@ -225,6 +239,7 @@ import { ref } from "vue";
 import { useRoute } from "vue-router";
 const route = useRoute();
 const isOpen = ref(false);
+const isLoading = ref(false);
 
 const navigation = [
   { name: "Dashboard", href: "/" },
@@ -236,5 +251,22 @@ const navigation = [
 
 // Add this under your existing refs
 const isProfileOpen = ref(false);
+const session = useState("auth_session", () => null);
 
+import { useAuth } from "../../services/auth.js";
+const { logout: performLogout } = useAuth();
+
+const logout = async () => {
+  isLoading.value = true;
+  try {
+    await performLogout();
+    isLoading.value = false;
+    session.value = null;
+    isProfileOpen.value = false;
+    await navigateTo("/login");
+  } catch (error) {
+    isLoading.value = false;
+    console.error("Logout failed:", error);
+  }
+};
 </script>

@@ -91,4 +91,8 @@ const onTableActionTriggered = (event) => {
     alert(`Triggered action pipeline loop execution request [${type.toUpperCase()}] for row target identifier ID reference value: ${row.id}`);
   }
 };
+
+const session = useState("auth_session")
+
+console.log(session.value);
 </script>

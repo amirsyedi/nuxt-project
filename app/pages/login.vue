@@ -1,5 +1,13 @@
 @ -1,159 +0,0 @@
 <template>
+  <MainSpinner
+    fullScreen
+    :is-loading="isLoading"
+    size="53px"
+    color="#3498db"
+    thickness="6px"
+  />
+
   <div class="flex min-h-screen items-center justify-center bg-zinc-900 px-4">
     <div class="w-full max-w-md space-y-6 rounded-xl bg-gray-50 p-8 shadow-md">
       <div class="text-center">
@@ -110,49 +118,41 @@
 
 <!-- app/pages/login.vue -->
 <script setup>
-import { ref } from "vue";
+
+import { ref } from "vue";  
+import { useAuth } from "../../services/auth.js";
 
 definePageMeta({
   layout: false,
 });
 
-// Extract the 'fetch' method and rename it so it doesn't conflict with global $fetch
-
-// if (loggedIn.value) {
-//   navigateTo("/");
-// }
-
-// Renamed state variable from 'username' to 'identifier'
 const identifier = ref("");
 const password = ref("");
-const showPassword = ref(false); // Added state for hiding/showing password
+const showPassword = ref(false); 
 const isLoading = ref(false);
 const errorMessage = ref("");
+const { login: authenticate } = useAuth();
+const session = useState("auth_session", () => null);
 
-// const handleLogin = async () => {
-//   isLoading.value = true;
-//   errorMessage.value = "";
+const handleLogin = async () => {
+  isLoading.value = true;
+  errorMessage.value = "";
 
-//   try {
-//     // 1. Updated URL path and passed the 'identifier' field required by your login API route
-//     await $fetch("/api/auth/login", {
-//       method: "POST",
-//       body: {
-//         identifier: identifier.value,
-//         password: password.value,
-//       },
-//     });
-
-//     // 2. Force the client-side to fetch the new session from the cookie
-//     await fetchUserSession();
-
-//     // 3. Redirect safely to your landing layout
-//     navigateTo("/");
-//   } catch (error) {
-//     // Falls back gracefully if your h3 instance sends custom error details back down the pipe
-//     errorMessage.value = error.data?.statusMessage || error.data?.message || "Authentication failed.";
-//   } finally {
-//     isLoading.value = false;
-//   }
-// };
+  try {
+    const loginResponse = await authenticate(
+      { 
+        identifier: identifier.value, 
+        password: password.value 
+      }
+    );
+    session.value = loginResponse;
+    // localStorage.setItem("auth-session", JSON.stringify(loginResponse));
+    await navigateTo("/");
+  } catch (error) {
+    console.log("error ::", error);
+    errorMessage.value = error.data?.statusMessage || error.data?.message || "Authentication failed.";
+  } finally {
+    isLoading.value = false;
+  }
+};
 </script>
