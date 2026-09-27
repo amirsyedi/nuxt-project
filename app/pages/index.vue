@@ -21,20 +21,6 @@
 </template>
 
 <script setup>
-import { useUserSession } from "#imports";
-
-// Hook up the auth middleware to protect this page
-definePageMeta({
-  middleware: "auth",
-});
-
-const { user, clear } = useUserSession();
-
-const handleLogout = async () => {
-  await clear(); // Secure backend logout provided by nuxt-auth-utils
-  navigateTo("/login"); // Redirect to login page URL
-};
-
 const schemaCard = computed(() => [
   [
     {
@@ -90,7 +76,7 @@ const myTableSchema = ref([
 
 // Live state data payload tracking array
 const myTableData = ref([
-  { id: "LOG-1002", service: "Authentication Endpoint Gateway Controller API Router", environment: "Production" },
+  { id: "LOG-1002", service: "Employee Access Management", environment: "Production" },
   { id: "LOG-7740", service: "Dynamic Content Management Engine Pool Core", environment: "Staging" },
 ]);
 

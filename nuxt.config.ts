@@ -3,8 +3,7 @@ export default defineNuxtConfig({
   compatibilityDate: '2025-07-15',
   devtools: { enabled: true },
   modules: [
-    '@nuxtjs/tailwindcss',
-    'nuxt-auth-utils'
+    '@nuxtjs/tailwindcss'
   ],
 
     vite: {
@@ -14,5 +13,14 @@ export default defineNuxtConfig({
         '@vue/devtools-kit',
       ]
     }
-  }
+  },
+
+  nitro: {
+    devProxy: {
+      '/api': {
+        target: 'http://localhost:5000/api',
+        changeOrigin: true
+      }
+    }
+  },
 })

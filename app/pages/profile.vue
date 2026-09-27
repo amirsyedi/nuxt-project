@@ -3,7 +3,7 @@
   <div class="max-w-4xl mx-auto space-y-6">
     <!-- <MainSpinner fullScreen v-if='isLoading'/> -->
 
-    <MainSpinner fullScreen v-if='isLoading' size="53px" color="#3498db" thickness="6px" />
+    <MainSpinner fullScreen :is-loading="isLoading" size="53px" color="#3498db" thickness="6px" />
     <!-- FIXED: Repaired modal markup syntax, tied v-model correctly, and added fallback content -->
     <MainModal
       v-model="isModalOpen"
@@ -13,8 +13,8 @@
     >
       <DynamicForm
         :schema="schemaForm"
-        :form-raw-data="apiData"
-        v-model="apiData"
+        :form-raw-data="profileData"
+        v-model="profileData"
       >
       </DynamicForm>
     </MainModal>
@@ -31,11 +31,18 @@
         Profil berjaya dikemaskini!
       </div>
 
+      <div
+        v-if="errorMessage"
+        class="mb-4 rounded-lg border border-red-200 bg-red-50 p-4 text-sm text-red-700"
+      >
+        {{ errorMessage }}
+      </div>
+
       <!-- Your Dynamic Form Component integrates here -->
       <DynamicForm
         :schema="schemaForm"
-        :form-raw-data="apiData"
-        v-model="apiData"
+        :form-raw-data="profileData"
+        v-model="profileData"
         @form-submit="saveProfile"
       />
 
@@ -67,17 +74,14 @@
 </template>
 
 <script setup>
-import { ref } from "vue";
-import { useUserSession } from "#imports";
+import { onMounted, ref } from "vue";
+import { useApi } from "../../services/users.js";
 
-definePageMeta({
-  middleware: "auth",
-});
-
-const { user } = useUserSession();
+const { getUsers, createUser, updateUser } = useApi();
 const isSaved = ref(false);
 const isModalOpen = ref(false);
 const isLoading = ref(false);
+const errorMessage = ref("");
 
 // FIXED: Added 'const' to define the arrow function, and used '.value' to mutate the ref
 const openModal = () => {
@@ -88,7 +92,7 @@ const testSpinner = () => {
   isLoading.value = true;
   setTimeout(() => {
     isLoading.value = false;
-  }, 2000);
+  }, 10000);
 };
 
 // 1. Map out your custom input schema configuration block
@@ -113,7 +117,7 @@ const schemaForm = {
       colGroups: [
         {
           colwidth: 12,
-          fields: [{ name: "fullName", label: "Nama Penuh", type: "text", viewOnly: false }],
+          fields: [{ name: "full_name", label: "Nama Penuh", type: "text", viewOnly: false }],
         },
         {
           colwidth: 6,
@@ -140,16 +144,53 @@ const schemaForm = {
   ],
 };
 
-const { data: apiData } = await useFetch("/api/users/me");
+const profileData = ref({
+  id: null,
+  username: "Guest",
+  role: "User",
+  full_name: "",
+  email: "",
+  department: "",
+});
 
-// 3. Handle data saving trigger event actions
+const loadProfile = async () => {
+  isLoading.value = true;
+  errorMessage.value = "";
+
+  try {
+    const users = await getUsers();
+    const user = Array.isArray(users) ? users[0] : users;
+    console.log('Loaded user:', user);
+    if (user) {
+      Object.assign(profileData.value, user);
+    }
+  } catch (error) {
+    errorMessage.value = error.data?.statusMessage || error.message || "Gagal memuatkan profil.";
+  } finally {
+    isLoading.value = false;
+  }
+};
+
 const saveProfile = async () => {
   isSaved.value = false;
+  errorMessage.value = "";
+  isLoading.value = true;
 
-  console.log("Saving profile payload changes:", data.value);
+  try {
+    const savedUser = profileData.value.id
+      ? await updateUser(profileData.value.id, profileData.value)
+      : await createUser(profileData.value);
 
-  // Show quick temporary save toast feedback indicator
-  await new Promise((resolve) => setTimeout(resolve, 400));
-  isSaved.value = true;
+    if (savedUser && typeof savedUser === "object") {
+      Object.assign(profileData.value, savedUser);
+    }
+    isSaved.value = true;
+  } catch (error) {
+    errorMessage.value = error.data?.statusMessage || error.message || "Gagal menyimpan profil.";
+  } finally {
+    isLoading.value = false;
+  }
 };
+
+onMounted(loadProfile);
 </script>

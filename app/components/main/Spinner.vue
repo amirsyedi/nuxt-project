@@ -1,11 +1,11 @@
 <template>
-  <div class="spinner-container" :class="{ 'is-full-screen': fullScreen }">
+  <div v-if="isVisible" class="spinner-container" :class="{ 'is-full-screen': fullScreen }">
     <div class="spinner" :style="spinnerStyle"></div>
   </div>
 </template>
 
 <script setup>
-import { computed } from 'vue';
+import { computed, onBeforeUnmount, ref, watch } from 'vue';
 
 const props = defineProps({
   size: {
@@ -23,7 +23,28 @@ const props = defineProps({
   fullScreen: {
     type: Boolean,
     default: false
+  },
+  isLoading: {
+    type: Boolean,
+    default: false
   }
+});
+
+const isVisible = ref(props.isLoading);
+let hideTimer;
+
+watch(() => props.isLoading, (isLoading) => {
+  if (!isLoading) return;
+
+  clearTimeout(hideTimer);
+  isVisible.value = true;
+  hideTimer = setTimeout(() => {
+    isVisible.value = false;
+  }, 2000);
+});
+
+onBeforeUnmount(() => {
+  clearTimeout(hideTimer);
 });
 
 const spinnerStyle = computed(() => {

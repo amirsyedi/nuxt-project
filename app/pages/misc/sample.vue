@@ -21,10 +21,6 @@
 <script setup>
 import { ref, computed } from "vue";
 
-definePageMeta({
-  middleware: "auth",
-});
-
 const counter = ref(10);
 
 const schemaCard = computed(() => [
@@ -68,7 +64,7 @@ const myTableSchema = ref([
 
 // Live state data payload tracking array
 const myTableData = ref([
-  { id: "LOG-1002", service: "Authentication Endpoint Gateway Controller API Router", environment: "Production" },
+  { id: "LOG-1002", service: "Employee Access Management", environment: "Production" },
   { id: "LOG-7740", service: "Dynamic Content Management Engine Pool Core", environment: "Staging" },
 ]);
 

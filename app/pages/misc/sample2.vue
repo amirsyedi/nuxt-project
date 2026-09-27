@@ -23,10 +23,6 @@ import { ref } from "vue";
 
 const showList = ref(true);
 
-definePageMeta({
-  middleware: "auth",
-});
-
 
 const myTableSchema = ref([
   { key: "id", label: "Log UUID", isMono: true, isBold: true },
@@ -35,9 +31,9 @@ const myTableSchema = ref([
 ]);
 
 const myTableData = ref([
-  { id: "LOG-001", service: "Authentication API Engine Controller Core", environment: "Production" },
+  { id: "LOG-001", service: "Employee Access Management", environment: "Production" },
   { id: "LOG-002", service: "Geo-Tracking Telemetry Webhook Router", environment: "Production" },
-  { id: "LOG-003", service: "SQL Pool Replication Database Service Sync", environment: "Staging" },
+  { id: "LOG-003", service: "Resource Directory Synchronization", environment: "Staging" },
   { id: "LOG-004", service: "CDN Cache Purge Cron Task Automation Worker", environment: "Production" },
   { id: "LOG-005", service: "SMS Validation Two-Factor Notification Gateway ", environment: "Staging" },
   { id: "LOG-006", service: "Payment Processing Microservice Webhook Engine Payment Processing Microservice Webhook Engine", environment: "Production" },

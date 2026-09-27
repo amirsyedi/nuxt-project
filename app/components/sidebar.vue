@@ -127,7 +127,7 @@
     <div class="hidden lg:fixed lg:inset-y-0 lg:z-50 lg:flex lg:w-72 lg:flex-col">
       <div class="flex grow flex-col gap-y-5 overflow-y-auto border-r border-gray-200 bg-zinc-900 px-6 pb-4">
         <div class="flex h-16 shrink-0 items-center">
-          <span class="text-gray-200 max-w-[250px] truncate inline-block align-bottom"> Welcome, {{ user?.fullName }} </span>
+          <span class="text-gray-200 max-w-[250px] truncate inline-block align-bottom">Welcome</span>
           <!-- <img class="h-8 w-auto" src="https://tailwindui.com/img/logos/mark.svg?color=indigo&shade=600" alt="Your Company" /> -->
         </div>
         <nav class="flex flex-1 flex-col">
@@ -174,21 +174,13 @@
                   class="absolute bottom-full left-0 z-10 w-full mb-2"
                 >
                   <div class="rounded-md bg-white shadow-lg ring-1 ring-black ring-opacity-5 overflow-hidden">
-                    <div class="py-1">
-                      <NuxtLink
-                        to="/profile"
-                        class="block px-4 py-2 text-sm text-gray-700 hover:bg-gray-100 hover:text-zinc-900 transition-colors"
-                        @click="isProfileOpen = false"
-                      >
-                        Profile
-                      </NuxtLink>
-                      <button
-                        @click="handleLogout"
-                        class="block w-full text-left px-4 py-2 text-sm text-gray-700 hover:bg-gray-100 hover:text-zinc-900 transition-colors"
-                      >
-                        Log out
-                      </button>
-                    </div>
+                    <NuxtLink
+                      to="/profile"
+                      class="block px-4 py-2 text-sm text-gray-700 hover:bg-gray-100 hover:text-zinc-900 transition-colors"
+                      @click="isProfileOpen = false"
+                    >
+                      Profile
+                    </NuxtLink>
                   </div>
                 </div>
               </transition>
@@ -231,10 +223,6 @@
 <script setup>
 import { ref } from "vue";
 import { useRoute } from "vue-router";
-import { useUserSession } from "#imports";
-
-const { user, clear } = useUserSession();
-
 const route = useRoute();
 const isOpen = ref(false);
 
@@ -249,9 +237,4 @@ const navigation = [
 // Add this under your existing refs
 const isProfileOpen = ref(false);
 
-const handleLogout = async () => {
-  await clear();
-  navigateTo("/login");
-  isProfileOpen.value = false;
-};
 </script>
