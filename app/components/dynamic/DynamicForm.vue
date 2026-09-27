@@ -30,12 +30,31 @@
               {{ field.label }}
             </label>
 
+            <!-- View-only private fields stay masked unless explicitly revealed. -->
+            <div v-if="field.viewOnly && field.type === 'private'" class="relative">
+              <input
+                :id="field.name"
+                :type="visiblePrivateFields[field.name] ? 'text' : 'password'"
+                :value="formData[field.name] ?? ''"
+                readonly
+                class="w-full px-3.5 py-2.5 pr-16 bg-blue-100 border border-gray-200 rounded-md text-gray-700 text-base font-medium"
+              />
+              <button
+                type="button"
+                :aria-label="visiblePrivateFields[field.name] ? `Hide ${field.label}` : `Show ${field.label}`"
+                class="absolute inset-y-0 right-3 text-sm font-medium text-gray-600 hover:text-gray-900"
+                @click="togglePrivateField(field.name)"
+              >
+                {{ visiblePrivateFields[field.name] ? 'Hide' : 'Show' }}
+              </button>
+            </div>
+
             <!-- View Only Layout -->
             <div
-              v-if="field.viewOnly"
-              class="px-3.5 py-2.5 bg-gray-50 border border-gray-200 rounded-md text-gray-700 text-base font-medium"
+              v-else-if="field.viewOnly"
+              class="px-3.5 py-2.5 bg-blue-100 border border-gray-200 rounded-md text-gray-700 text-base font-medium"
             >
-              {{ getSelectedLabel(field) || "—" }}
+              {{ getSelectedLabel(field) || "..." }}
             </div>
 
             <!-- Select Option Layout -->
@@ -56,6 +75,22 @@
             </select>
 
             <!-- Standard Inputs (text, email, password, etc) -->
+            <div v-else-if="field.type === 'private'" class="relative">
+              <input
+                :id="field.name"
+                :type="visiblePrivateFields[field.name] ? 'text' : 'password'"
+                v-model="formData[field.name]"
+                class="w-full px-3.5 py-2.5 pr-16 border border-gray-300 rounded-md text-base outline-none transition duration-200 focus:border-blue-400 focus:ring-3 focus:ring-blue-400/15"
+              />
+              <button
+                type="button"
+                :aria-label="visiblePrivateFields[field.name] ? `Hide ${field.label}` : `Show ${field.label}`"
+                class="absolute inset-y-0 right-3 text-sm font-medium text-gray-600 hover:text-gray-900"
+                @click="togglePrivateField(field.name)"
+              >
+                {{ visiblePrivateFields[field.name] ? 'Hide' : 'Show' }}
+              </button>
+            </div>
             <input
               v-else
               :id="field.name"
@@ -71,7 +106,7 @@
 </template>
 
 <script setup>
-import { watch } from 'vue';
+import { reactive, watch } from 'vue';
 
 const props = defineProps({
   schema: { type: Object, required: true },
@@ -80,6 +115,11 @@ const props = defineProps({
 
 // Upgraded Vue 3.4+ Bidirectional Binding (Replaces old modelValue layout)
 const formData = defineModel({ type: Object, required: true });
+const visiblePrivateFields = reactive({});
+
+const togglePrivateField = (fieldName) => {
+  visiblePrivateFields[fieldName] = !visiblePrivateFields[fieldName];
+};
 
 const emit = defineEmits(["form-submit"]);
 const handleSubmit = () => emit("form-submit");

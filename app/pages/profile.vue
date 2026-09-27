@@ -3,7 +3,13 @@
   <div class="max-w-4xl mx-auto space-y-6">
     <!-- <MainSpinner fullScreen v-if='isLoading'/> -->
 
-    <MainSpinner fullScreen :is-loading="isLoading" size="53px" color="#3498db" thickness="6px" />
+    <MainSpinner
+      fullScreen
+      :is-loading="isLoading"
+      size="53px"
+      color="#3498db"
+      thickness="6px"
+    />
     <!-- FIXED: Repaired modal markup syntax, tied v-model correctly, and added fallback content -->
     <MainModal
       v-model="isModalOpen"
@@ -61,13 +67,6 @@
         >
           Modal
         </button>
-        <button
-          type="button"
-          @click="testSpinner"
-          class="bg-blue-600 hover:bg-blue-500 text-white font-medium py-2.5 px-6 rounded-lg text-sm transition shadow-sm mx-1 cursor-pointer"
-        >
-          Spinner
-        </button>
       </div>
     </MainCard>
   </div>
@@ -86,13 +85,6 @@ const errorMessage = ref("");
 // FIXED: Added 'const' to define the arrow function, and used '.value' to mutate the ref
 const openModal = () => {
   isModalOpen.value = true;
-};
-
-const testSpinner = () => {
-  isLoading.value = true;
-  setTimeout(() => {
-    isLoading.value = false;
-  }, 10000);
 };
 
 // 1. Map out your custom input schema configuration block
@@ -117,11 +109,29 @@ const schemaForm = {
       colGroups: [
         {
           colwidth: 12,
-          fields: [{ name: "full_name", label: "Nama Penuh", type: "text", viewOnly: false }],
+          fields: [
+            { 
+              name: "ic_number", 
+              label: "No. Kad Pengenalan", 
+              type: "text", viewOnly: true 
+            }
+          ],
+        },
+        {
+          colwidth: 12,
+          fields: [
+            { name: "full_name", 
+            label: "Nama Penuh", 
+            type: "text", 
+            viewOnly: false 
+          }
+        ],
         },
         {
           colwidth: 6,
-          fields: [{ name: "email", label: "Alamat Emel", type: "email", viewOnly: false }],
+          fields: [
+            { name: "email", 
+            label: "Alamat Emel", type: "email", viewOnly: false }],
         },
         {
           colwidth: 6,
@@ -141,6 +151,55 @@ const schemaForm = {
         },
       ],
     },
+    {
+      legend: "Maklumat Kontrak",
+      colGroups: [
+        {
+          colwidth: 6,
+          fields: [
+            { 
+              name: "kategoriPekerja", 
+              label: "Kategori Pekerja", 
+              type: "text", 
+              viewOnly: true 
+            }
+          ],
+        },
+        {
+          colwidth: 6,
+          fields: [
+            { 
+              name: "gajiPekerja", 
+              label: "Gaji Perkerja", 
+              type: "private", 
+              viewOnly: true 
+            }
+          ],
+        },
+        {
+          colwidth: 6,
+          fields: [
+            { 
+              name: "tarikhMula", 
+              label: "Tarikh Mula", 
+              type: "date", 
+              viewOnly: true 
+            }
+          ],
+        },
+        {
+          colwidth: 6,
+          fields: [
+            { 
+              name: "tarikhTamat", 
+              label: "Tarikh Tamat", 
+              type: "date", 
+              viewOnly: true 
+            }
+          ],
+        },
+      ],
+    },
   ],
 };
 
@@ -151,6 +210,7 @@ const profileData = ref({
   full_name: "",
   email: "",
   department: "",
+  gajiPekerja: "1000.00"
 });
 
 const loadProfile = async () => {
@@ -160,7 +220,7 @@ const loadProfile = async () => {
   try {
     const users = await getUsers();
     const user = Array.isArray(users) ? users[0] : users;
-    console.log('Loaded user:', user);
+    console.log("Loaded user:", user);
     if (user) {
       Object.assign(profileData.value, user);
     }
@@ -177,9 +237,7 @@ const saveProfile = async () => {
   isLoading.value = true;
 
   try {
-    const savedUser = profileData.value.id
-      ? await updateUser(profileData.value.id, profileData.value)
-      : await createUser(profileData.value);
+    const savedUser = profileData.value.id ? await updateUser(profileData.value.id, profileData.value) : await createUser(profileData.value);
 
     if (savedUser && typeof savedUser === "object") {
       Object.assign(profileData.value, savedUser);
