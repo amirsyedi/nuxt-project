@@ -10,7 +10,7 @@
       :key="fsIndex"
       class="border border-gray-200 rounded-xl p-6 bg-white shadow-sm space-y-4"
     >
-      <legend v-if="fieldset.legend" class="text-md font-semibold text-gray-700 px-2">
+      <legend v-if="fieldset.legend" class="text-md font-semibold text-gray-700">
         {{ fieldset.legend }}
       </legend>
 
@@ -31,7 +31,7 @@
             </label>
 
             <!-- View-only private fields stay masked unless explicitly revealed. -->
-            <div v-if="field.viewOnly && field.type === 'private'" class="relative">
+            <div v-if="field.viewOnly && field.viewType === 'private'" class="relative">
               <input
                 :id="field.name"
                 :type="visiblePrivateFields[field.name] ? 'text' : 'password'"
@@ -75,11 +75,14 @@
             </select>
 
             <!-- Standard Inputs (text, email, password, etc) -->
-            <div v-else-if="field.type === 'private'" class="relative">
+            <div v-else-if="field.viewType === 'private'" class="relative">
               <input
                 :id="field.name"
                 :type="visiblePrivateFields[field.name] ? 'text' : 'password'"
+                :inputmode="['number', 'currency'].includes(field.type) ? 'decimal' : undefined"
                 v-model="formData[field.name]"
+                @input="sanitizeNumericInput($event, field)"
+                @blur="formatCurrencyInput($event, field)"
                 class="w-full px-3.5 py-2.5 pr-16 border border-gray-300 rounded-md text-base outline-none transition duration-200 focus:border-blue-400 focus:ring-3 focus:ring-blue-400/15"
               />
               <button
@@ -91,6 +94,16 @@
                 {{ visiblePrivateFields[field.name] ? 'Hide' : 'Show' }}
               </button>
             </div>
+            <input
+              v-else-if="field.type === 'number' || field.type === 'currency'"
+              :id="field.name"
+              type="text"
+              inputmode="decimal"
+              :value="formData[field.name] ?? ''"
+              @input="sanitizeNumericInput($event, field)"
+              @blur="formatCurrencyInput($event, field)"
+              class="px-3.5 py-2.5 border border-gray-300 rounded-md text-base outline-none transition duration-200 focus:border-blue-400 focus:ring-3 focus:ring-blue-400/15"
+            />
             <input
               v-else
               :id="field.name"
@@ -119,6 +132,36 @@ const visiblePrivateFields = reactive({});
 
 const togglePrivateField = (fieldName) => {
   visiblePrivateFields[fieldName] = !visiblePrivateFields[fieldName];
+};
+
+const sanitizeNumericInput = (event, field) => {
+  if (!['number', 'currency'].includes(field.type)) return;
+
+  const maxDecimalPlaces = field.type === 'currency' ? 2 : undefined;
+  let value = event.target.value.replace(/[^\d.-]/g, '');
+  const isNegative = value.startsWith('-');
+  value = value.replace(/-/g, '');
+
+  const decimalIndex = value.indexOf('.');
+  if (decimalIndex !== -1) {
+    value = `${value.slice(0, decimalIndex + 1)}${value.slice(decimalIndex + 1).replace(/\./g, '')}`;
+    if (maxDecimalPlaces !== undefined) {
+      value = `${value.slice(0, decimalIndex + 1)}${value.slice(decimalIndex + 1, decimalIndex + 1 + maxDecimalPlaces)}`;
+    }
+  }
+
+  event.target.value = `${isNegative ? '-' : ''}${value}`;
+  formData.value[field.name] = event.target.value;
+};
+
+const formatCurrencyInput = (event, field) => {
+  if (field.type !== 'currency' || event.target.value === '') return;
+
+  const value = Number(event.target.value);
+  if (!Number.isFinite(value)) return;
+
+  event.target.value = value.toFixed(2);
+  formData.value[field.name] = event.target.value;
 };
 
 const emit = defineEmits(["form-submit"]);
@@ -156,6 +199,18 @@ const getSelectedLabel = (field) => {
   if (field.type === 'select' && field.options) {
     const matchingOption = field.options.find(opt => opt.value === value);
     return matchingOption ? matchingOption.label : value;
+  }
+  if (
+    field.type === 'currency' &&
+    value !== null &&
+    value !== undefined &&
+    value !== '' &&
+    Number.isFinite(Number(value))
+  ) {
+    return new Intl.NumberFormat('ms-MY', {
+      style: 'currency',
+      currency: field.currency || 'MYR',
+    }).format(Number(value));
   }
   return value;
 };

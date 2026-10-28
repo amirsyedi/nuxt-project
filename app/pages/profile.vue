@@ -32,7 +32,7 @@
 
       <div
         v-if="isSaved"
-        class="bg-emerald-50 border border-emerald-200 text-emerald-800 p-4 rounded-xl text-sm font-medium mb-4"
+        class="bg-emerald-300 border border-emerald-200 text-emerald-800 p-4 rounded-xl text-sm font-medium mb-4"
       >
         Profil berjaya dikemaskini!
       </div>
@@ -56,7 +56,7 @@
         <button
           type="button"
           @click="saveProfile"
-          class="bg-blue-600 hover:bg-blue-500 text-white font-medium py-2.5 px-6 rounded-lg text-sm transition shadow-sm mx-1 cursor-pointer"
+          class="bg-green-600 hover:bg-green-500 text-white font-medium py-2.5 px-6 rounded-lg text-sm transition shadow-sm mx-1 cursor-pointer"
         >
           Simpan Profil
         </button>
@@ -67,6 +67,13 @@
         >
           Modal
         </button>
+        <!-- <button
+          type="button"
+          @click="backToList"
+          class="bg-blue-600 hover:bg-blue-500 text-white font-medium py-2.5 px-6 rounded-lg text-sm transition shadow-sm mx-1 cursor-pointer"
+        >
+          Kembali
+        </button> -->
       </div>
     </MainCard>
   </div>
@@ -76,7 +83,11 @@
 import { onMounted, ref } from "vue";
 import { useApi } from "../../services/users.js";
 
-const { getUsers, createUser, updateUser } = useApi();
+const { 
+  getUsers, 
+  createUser, 
+  updateUser 
+} = useApi();
 const isSaved = ref(false);
 const isModalOpen = ref(false);
 const isLoading = ref(false);
@@ -120,18 +131,24 @@ const schemaForm = {
         {
           colwidth: 12,
           fields: [
-            { name: "full_name", 
-            label: "Nama Penuh", 
-            type: "text", 
-            viewOnly: false 
-          }
-        ],
+            { 
+              name: "full_name", 
+              label: "Nama Penuh", 
+              type: "text", 
+              viewOnly: false 
+            }
+          ],
         },
         {
           colwidth: 6,
           fields: [
-            { name: "email", 
-            label: "Alamat Emel", type: "email", viewOnly: false }],
+            { 
+              name: "email", 
+              label: "Emel", 
+              type: "email", 
+              viewOnly: false 
+            }
+          ],
         },
         {
           colwidth: 6,
@@ -158,10 +175,14 @@ const schemaForm = {
           colwidth: 6,
           fields: [
             { 
-              name: "kategoriPekerja", 
+              name: "kategori_pekerja", 
               label: "Kategori Pekerja", 
-              type: "text", 
-              viewOnly: true 
+              type: "select",
+              viewOnly: false,
+              options: [
+                { value: "Tetap", label: "Sepenuh Masa" },
+                { value: "Kontrak", label: "Kontrak" },
+              ],
             }
           ],
         },
@@ -169,10 +190,11 @@ const schemaForm = {
           colwidth: 6,
           fields: [
             { 
-              name: "gajiPekerja", 
-              label: "Gaji Perkerja", 
-              type: "private", 
-              viewOnly: true 
+              name: "gaji_pekerja", 
+              label: "Gaji Pekerja", 
+              type: "currency",
+              viewType: "private",
+              // viewOnly: true 
             }
           ],
         },
@@ -210,7 +232,7 @@ const profileData = ref({
   full_name: "",
   email: "",
   department: "",
-  gajiPekerja: "1000.00"
+  gajiPekerja: 0
 });
 
 const loadProfile = async () => {
@@ -243,12 +265,22 @@ const saveProfile = async () => {
       Object.assign(profileData.value, savedUser);
     }
     isSaved.value = true;
+    setTimeout(() => {
+      isSaved.value = false;
+    }, 3000);
   } catch (error) {
     errorMessage.value = error.data?.statusMessage || error.message || "Gagal menyimpan profil.";
+    setTimeout(() => {
+      errorMessage.value = "";
+    }, 3000);
   } finally {
     isLoading.value = false;
   }
 };
+
+// const backToList = () => {
+//   this.$router.back('/');
+// }
 
 onMounted(loadProfile);
 </script>

@@ -208,8 +208,8 @@
                 <span class="sr-only">Your profile</span>
                 <span
                   aria-hidden="true"
-                  class="text-gray-200 font-bold uppercase tracking-wide group-hover:text-zinc-900 transition-colors"
-                  >Dev Admin</span
+                  class="text-gray-200 font-bold tracking-wide group-hover:text-zinc-900 transition-colors"
+                  >Profile</span
                 >
                 <!-- Chevron Icon to indicate dropdown -->
                 <svg
@@ -235,23 +235,36 @@
 </template>
 
 <script setup>
-import { ref } from "vue";
+import { computed, ref } from "vue";
 import { useRoute } from "vue-router";
+const session = useState("auth_session", () => null);
 const route = useRoute();
 const isOpen = ref(false);
 const isLoading = ref(false);
 
-const navigation = [
-  { name: "Dashboard", href: "/" },
-  { name: "Attendance", href: "/attendance" },
-  { name: "SAMPLE", href: "/misc/sample2" },
+
+
+console.log("session:", session.value.user);
+const userRole = computed(() => {
+  const role = session.value?.user?.role ?? session.value?.role;
+  return typeof role === "string" ? role.trim().toLowerCase() : "";
+});
+
+const navigationItems = [
+  { name: "Dashboard", href: "/", roles: ["admin", "staff"] },
+  { name: "Attendance", href: "/attendance", roles: ["admin", "staff"] },
+  { name: "SAMPLE", href: "/misc/sample2", roles: ["admin"] },
+  { name: "Users", href: "/users/user", roles: ["admin"] },
   // { name: "Calendar", href: "/calendar" },
   // { name: "Reports", href: "/reports" },
 ];
 
+const navigation = computed(() =>
+  navigationItems.filter(item => !item.roles || item.roles.includes(userRole.value))
+);
+
 // Add this under your existing refs
 const isProfileOpen = ref(false);
-const session = useState("auth_session", () => null);
 
 import { useAuth } from "../../services/auth.js";
 const { logout: performLogout } = useAuth();

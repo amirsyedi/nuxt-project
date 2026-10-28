@@ -1,6 +1,6 @@
 <!-- layouts/default.vue -->
 <template>
-  <div class="min-h-screen bg-gray-50">
+  <div class="min-h-screen bg-gray-300">
     <!-- Auto-imported from components/Sidebar.vue -->
     <Sidebar />
     

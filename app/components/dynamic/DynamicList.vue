@@ -2,7 +2,7 @@
   <div class="bg-white border border-gray-200 rounded-2xl shadow-xs overflow-hidden w-full">
     
     <!-- Table Header block -->
-    <div class="px-6 py-4 border-b border-gray-100 flex items-center justify-between bg-white">
+    <div class="px-4 py-4 border-b border-gray-100 flex items-center justify-between bg-white">
       <div class="flex items-center space-x-3">
         <h3 class="text-sm font-bold text-slate-900">{{ title }}</h3>
         <span class="text-xs font-semibold px-2.5 py-0.5 bg-blue-50 text-blue-700 rounded-full" v-if="badge">
@@ -15,7 +15,7 @@
     <div class="w-full overflow-x-auto">
       <table class="w-full text-left text-sm text-gray-500 table-auto">
         <thead class="bg-gray-50 text-xs text-gray-700 uppercase font-bold border-b border-gray-100">
-          <tr class="bg-gray-200">
+          <tr class="bg-gray-300">
             <!-- Auto-Increment Number Column -->
             <th class="px-4 py-3.5 tracking-wider text-center w-12">
               No.
