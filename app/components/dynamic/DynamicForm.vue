@@ -31,13 +31,13 @@
             </label>
 
             <!-- View-only private fields stay masked unless explicitly revealed. -->
-            <div v-if="field.viewOnly && field.viewType === 'private'" class="relative">
+            <div v-if="isFieldViewOnly(field) && field.viewType === 'private'" class="relative">
               <input
                 :id="field.name"
                 :type="visiblePrivateFields[field.name] ? 'text' : 'password'"
                 :value="formData[field.name] ?? ''"
                 readonly
-                class="w-full px-3.5 py-2.5 pr-16 bg-blue-100 border border-gray-200 rounded-md text-gray-700 text-base font-medium"
+                class="w-full px-3.5 py-2.5 pr-16 bg-blue-100 border border-gray-300 rounded-md text-gray-700 text-base font-medium"
               />
               <button
                 type="button"
@@ -51,8 +51,8 @@
 
             <!-- View Only Layout -->
             <div
-              v-else-if="field.viewOnly"
-              class="px-3.5 py-2.5 bg-blue-100 border border-gray-200 rounded-md text-gray-700 text-base font-medium"
+              v-else-if="isFieldViewOnly(field)"
+              class="px-3.5 py-2.5 bg-blue-100 border border-gray-300 rounded-md text-gray-700 text-base font-medium"
             >
               {{ getSelectedLabel(field) || "..." }}
             </div>
@@ -123,12 +123,15 @@ import { reactive, watch } from 'vue';
 
 const props = defineProps({
   schema: { type: Object, required: true },
-  rawData: { type: Object, default: () => null }
+  rawData: { type: Object, default: () => null },
+  viewMode: { type: String, default: '' }
 });
 
 // Upgraded Vue 3.4+ Bidirectional Binding (Replaces old modelValue layout)
 const formData = defineModel({ type: Object, required: true });
 const visiblePrivateFields = reactive({});
+
+const isFieldViewOnly = (field) => props.viewMode === 'view' || field.viewOnly;
 
 const togglePrivateField = (fieldName) => {
   visiblePrivateFields[fieldName] = !visiblePrivateFields[fieldName];

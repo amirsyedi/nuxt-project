@@ -12,6 +12,15 @@ export const useApi = () => {
     }
   };
 
+  const getUserById = async (id) => {
+    try {
+      return await $fetch(`/api/users/${id}`);
+    } catch (err) {
+      console.error('Failed to fetch user:', err);
+      return null;
+    }
+  };
+
   // 2. CREATE: Add a new item
   const createUser = async (userData) => {
     try {
@@ -39,6 +48,7 @@ export const useApi = () => {
 
   // 3. DELETE: Remove an item by ID
   const deleteUser = async (id) => {
+    console.log("deleteUser deleting", id);
     try {
       return await $fetch(`/api/users/${id}`, {
         method: 'DELETE'
@@ -51,8 +61,9 @@ export const useApi = () => {
 
   return {
     getUsers,
+    getUserById,
     createUser,
     updateUser,
-    deleteUser 
+    deleteUser,
   };
 };

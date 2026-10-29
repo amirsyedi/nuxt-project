@@ -244,7 +244,6 @@ const isLoading = ref(false);
 
 
 
-console.log("session:", session.value.user);
 const userRole = computed(() => {
   const role = session.value?.user?.role ?? session.value?.role;
   return typeof role === "string" ? role.trim().toLowerCase() : "";
@@ -254,7 +253,7 @@ const navigationItems = [
   { name: "Dashboard", href: "/", roles: ["admin", "staff"] },
   { name: "Attendance", href: "/attendance", roles: ["admin", "staff"] },
   { name: "SAMPLE", href: "/misc/sample2", roles: ["admin"] },
-  { name: "Users", href: "/users/user", roles: ["admin"] },
+  { name: "Users", href: "/users/user", roles: ["admin"] }, 
   // { name: "Calendar", href: "/calendar" },
   // { name: "Reports", href: "/reports" },
 ];

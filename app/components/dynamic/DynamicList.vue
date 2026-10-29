@@ -44,7 +44,7 @@
           <tr 
             v-for="(row, rowIndex) in paginatedData" 
             :key="row.id || rowIndex" 
-            class="hover:bg-gray-50/70 transition duration-150"
+            class="hover:bg-gray-300 transition duration-150"
           >
             <!-- Auto Increment Row Number -->
             <td class="px-4 py-4 text-center font-mono text-xs font-bold text-slate-400">
@@ -64,10 +64,10 @@
                 v-if="col.type === 'badge'"
                 :class="[
                   'inline-block px-2.5 py-1 text-xs font-black rounded-lg border whitespace-nowrap',
-                  row[col.key] === 'Production' || row[col.key] === 'success' ? 'bg-emerald-50 text-emerald-700 border-emerald-100' : 
-                  row[col.key] === 'warning' ? 'bg-amber-50 text-amber-700 border-amber-100' : 
-                  row[col.key] === 'danger' ? 'bg-rose-50 text-rose-700 border-rose-100' : 
-                  'bg-blue-50 text-blue-700 border-blue-100'
+                  row[col.key] === 'success' ? 'bg-emerald-50 text-emerald-700 border-emerald-300' : 
+                  row[col.key] === 'warning' ? 'bg-amber-50 text-amber-700 border-amber-300' : 
+                  row[col.key] === 'danger' ? 'bg-rose-50 text-rose-700 border-rose-300' : 
+                  'bg-blue-700 text-white border-blue-700'
                 ]"
               >
                 {{ row[col.key] }}
@@ -91,7 +91,7 @@
                 <template v-for="btn in actions" :key="btn.name">
                   <button 
                     v-if="!shouldHideAction(btn, row)"
-                    @click="btn.handler(row)"
+                    @click="handleAction(btn, row)"
                     :disabled="btn.disabled && btn.disabled(row)"
                     :title="typeof btn.label === 'function' ? btn.label(row) : btn.label"
                     :class="[
@@ -147,18 +147,22 @@
 
       <div class="flex items-center space-x-2">
         <button 
-          @click="currentPage = Math.max(1, currentPage - 1)"
+          @click="goToPage(Math.max(1, currentPage - 1))"
           :disabled="currentPage === 1 || totalPages === 0"
+          aria-label="Previous page"
+          title="Previous page"
           class="px-3 py-1.5 bg-white border border-gray-200 rounded-lg shadow-2xs text-gray-700 hover:bg-gray-50 disabled:opacity-40 disabled:cursor-not-allowed cursor-pointer transition select-none"
         >
-          Previous
+          <svg xmlns="http://www.w3.org/2000/svg" fill="none" viewBox="0 0 24 24" stroke-width="2" stroke="currentColor" class="w-4 h-4">
+            <path stroke-linecap="round" stroke-linejoin="round" d="m15 19-7-7 7-7" />
+          </svg>
         </button>
         
         <div class="flex items-center space-x-1" v-if="totalPages > 0">
           <button
             v-for="p in totalPages"
             :key="p"
-            @click="currentPage = p"
+            @click="goToPage(p)"
             :class="[
               'w-7 h-7 flex items-center justify-center rounded-lg border font-bold transition select-none cursor-pointer',
               currentPage === p 
@@ -171,11 +175,15 @@
         </div>
 
         <button 
-          @click="currentPage = Math.min(totalPages, currentPage + 1)"
+          @click="goToPage(Math.min(totalPages, currentPage + 1))"
           :disabled="currentPage === totalPages || totalPages === 0"
+          aria-label="Next page"
+          title="Next page"
           class="px-3 py-1.5 bg-white border border-gray-200 rounded-lg shadow-2xs text-gray-700 hover:bg-gray-50 disabled:opacity-40 disabled:cursor-not-allowed cursor-pointer transition select-none"
         >
-          Next
+          <svg xmlns="http://www.w3.org/2000/svg" fill="none" viewBox="0 0 24 24" stroke-width="2" stroke="currentColor" class="w-4 h-4">
+            <path stroke-linecap="round" stroke-linejoin="round" d="m9 5 7 7-7 7" />
+          </svg>
         </button>
       </div>
     </div>
@@ -193,6 +201,18 @@ const props = defineProps({
   perPage: { type: Number, default: 5 },
   badge: {type: Boolean, default: false }
 })
+
+const emit = defineEmits(['refresh'])
+
+const handleAction = async (btn, row) => {
+  await btn.handler(row)
+  if (btn.name === 'delete') emit('refresh')
+}
+
+const goToPage = (page) => {
+  currentPage.value = page
+  emit('refresh')
+}
 
 const currentPage = ref(1)
 

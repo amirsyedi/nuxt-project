@@ -50,25 +50,14 @@
                 </div>
               </slot>
 
-              <!-- Close Window Icon Button Cross -->
+              <!-- Close button styled as a warning action. -->
               <button
                 @click="closeModal"
-                class="text-gray-400 hover:text-gray-600 p-1 rounded-lg hover:bg-gray-50 transition cursor-pointer"
+                class="inline-flex items-center gap-2 rounded-lg border border-red-300 bg-red-500 px-3 py-1.5 text-white transition hover:bg-red-600 cursor-pointer"
                 aria-label="Close modal"
+                type="button"
               >
-                <svg
-                  class="w-4 h-4"
-                  fill="none"
-                  stroke="currentColor"
-                  stroke-width="2.5"
-                  viewBox="0 0 24 24"
-                >
-                  <path
-                    stroke-linecap="round"
-                    stroke-linejoin="round"
-                    d="M6 18L18 6M6 6l12 12"
-                  />
-                </svg>
+                <span>Close</span>
               </button>
             </div>
 
@@ -119,6 +108,8 @@ const sizeClass = computed(() => {
     case 'lg': return 'max-w-2xl'
     case 'xl': return 'max-w-4xl'
     case '2xl': return 'max-w-6xl'
+    case '4xl': return 'max-w-8xl'
+    case '6xl': return 'max-w-10xl'
     case 'md':
     default: return 'max-w-lg'
   }

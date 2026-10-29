@@ -1,0 +1,245 @@
+<!-- app/pages/profile.vue -->
+<template>
+  <div class="max-w-4xl mx-auto space-y-6">
+    <MainSpinner
+      fullScreen
+      :is-loading="isLoading"
+      size="53px"
+      color="#3498db"
+      thickness="6px"
+    />
+    <MainCard>
+      <!-- FIXED: Changed to your customized folder structure naming convention component -->
+      <MainBreadcrumb />
+
+      <div
+        v-if="isSaved"
+        class="bg-emerald-300 border border-emerald-200 text-emerald-800 p-4 rounded-xl text-sm font-medium mb-4"
+      >
+        Profil berjaya dikemaskini!
+      </div>
+
+      <div
+        v-if="errorMessage"
+        class="mb-4 rounded-lg border border-red-200 bg-red-50 p-4 text-sm text-red-700"
+      >
+        {{ errorMessage }}
+      </div>
+
+      <!-- Your Dynamic Form Component integrates here -->
+      <DynamicForm
+        :schema="schemaForm"
+        :form-raw-data="profileData"
+        :view-mode="viewMode"
+        v-model="profileData"
+        @form-submit="saveProfile"
+      />
+
+      <div class="flex justify-end mt-4">
+        <button
+          v-if="viewMode != 'view'"
+          type="button"
+          @click="saveProfile"
+          class="bg-green-600 hover:bg-green-500 text-white font-medium py-2.5 px-6 rounded-lg text-sm transition shadow-sm mx-1 cursor-pointer"
+        >
+          Simpan
+        </button>
+      </div>
+    </MainCard>
+  </div>
+</template>
+
+<script setup>
+import { onMounted, ref } from "vue";
+import { useApi } from "../../../services/users.js";
+
+const props = defineProps({
+  propIdUser: { type: [String, Number], default: null },
+  viewMode: { type: String },
+  refreshUsers: { type: Function, default: () => Promise.resolve() },
+});
+
+const { getUserById, updateUser } = useApi();
+const isSaved = ref(false);
+const isLoading = ref(false);
+const errorMessage = ref("");
+
+const schemaForm = {
+  title: "Maklumat Profil Pengguna",
+  fieldSets: [
+    {
+      legend: "Sistem Akaun (View-Only)",
+      colGroups: [
+        {
+          colwidth: 6,
+          fields: [{ name: "username", label: "Nama Pengguna (Username)", type: "text", viewOnly: true }],
+        },
+        {
+          colwidth: 6,
+          fields: [{ name: "role", label: "Peranan Akses (Role)", type: "text", viewOnly: true }],
+        },
+      ],
+    },
+    {
+      legend: "Butiran Peribadi",
+      colGroups: [
+        {
+          colwidth: 12,
+          fields: [
+            { 
+              name: "ic_number", 
+              label: "No. Kad Pengenalan", 
+              type: "text", viewOnly: true 
+            }
+          ],
+        },
+        {
+          colwidth: 12,
+          fields: [
+            { 
+              name: "full_name", 
+              label: "Nama Penuh", 
+              type: "text", 
+              viewOnly: false 
+            }
+          ],
+        },
+        {
+          colwidth: 6,
+          fields: [
+            { 
+              name: "email", 
+              label: "Emel", 
+              type: "email", 
+              viewOnly: false 
+            }
+          ],
+        },
+        {
+          colwidth: 6,
+          fields: [
+            {
+              name: "department",
+              label: "Bahagian / Jabatan",
+              type: "select",
+              viewOnly: false,
+              options: [
+                { value: "IT", label: "Teknologi Maklumat (IT)" },
+                { value: "hr", label: "Sumber Manusia (HR)" },
+                { value: "finance", label: "Kewangan" },
+              ],
+            },
+          ],
+        },
+      ],
+    },
+    {
+      legend: "Maklumat Kontrak",
+      colGroups: [
+        {
+          colwidth: 6,
+          fields: [
+            { 
+              name: "kategori_pekerja", 
+              label: "Kategori Pekerja", 
+              type: "select",
+              viewOnly: false,
+              options: [
+                { value: "Tetap", label: "Sepenuh Masa" },
+                { value: "Kontrak", label: "Kontrak" },
+              ],
+            }
+          ],
+        },
+        {
+          colwidth: 6,
+          fields: [
+            { 
+              name: "gaji_pekerja", 
+              label: "Gaji Pekerja", 
+              type: "currency",
+              viewType: "private",
+              // viewOnly: true 
+            }
+          ],
+        },
+        {
+          colwidth: 6,
+          fields: [
+            { 
+              name: "tarikhMula", 
+              label: "Tarikh Mula", 
+              type: "date", 
+              viewOnly: true 
+            }
+          ],
+        },
+        {
+          colwidth: 6,
+          fields: [
+            { 
+              name: "tarikhTamat", 
+              label: "Tarikh Tamat", 
+              type: "date", 
+              viewOnly: true 
+            }
+          ],
+        },
+      ],
+    },
+  ],
+};
+
+const profileData = ref({
+  id: null,
+  username: "",
+  role: "",
+  full_name: "",
+  email: "",
+  department: "",
+  gajiPekerja: 0
+});
+
+onMounted(() => {
+  getData();
+});
+
+const getData = async () => {
+  isLoading.value = true;
+  await getUserById(props.propIdUser).then(res => {
+    console.log("res", res);
+    Object.assign(profileData.value, res);
+    isLoading.value = false;
+  }).catch(err => {
+    console.log(err);
+    isLoading.value = false;
+  });
+};
+
+const saveProfile = async () => {
+  isSaved.value = false;
+  errorMessage.value = "";
+  isLoading.value = true;
+
+  try {
+    const savedUser = await updateUser(profileData.value.id, profileData.value);
+
+    if (savedUser && typeof savedUser === "object") {
+      Object.assign(profileData.value, savedUser);
+    }
+    await props.refreshUsers();
+    isSaved.value = true;
+    setTimeout(() => {
+      isSaved.value = false;
+    }, 3000);
+  } catch (error) {
+    errorMessage.value = error.data?.statusMessage || error.message || "Gagal menyimpan profil.";
+    setTimeout(() => {
+      errorMessage.value = "";
+    }, 3000);
+  } finally {
+    isLoading.value = false;
+  }
+};
+
+</script>
