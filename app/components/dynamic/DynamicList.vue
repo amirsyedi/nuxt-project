@@ -81,7 +81,7 @@
                   col.isMono ? 'inline-block font-mono text-xs text-slate-400 bg-gray-50 px-1.5 py-1 rounded border border-gray-100' : ''
                 ]"
               >
-                {{ row[col.key] || '—' }}
+                {{ formatCellValue(row[col.key], col.type) }}
               </span>
             </td>
 
@@ -259,5 +259,32 @@ const getAlignClass = (align) => {
     default:
       return 'text-left'
   }
+}
+
+const formatCellValue = (value, type) => {
+  if (!value) return '—'
+  if (type !== 'date' && type !== 'datetime-local') return value
+
+  const date = type === 'date' && /^\d{4}-\d{2}-\d{2}$/.test(value)
+    ? new Date(`${value}T00:00:00`)
+    : new Date(value)
+
+  if (Number.isNaN(date.getTime())) return value
+
+  const formattedDate = new Intl.DateTimeFormat('en-GB', {
+    day: '2-digit',
+    month: '2-digit',
+    year: 'numeric',
+  }).format(date)
+
+  if (type === 'date') return formattedDate
+
+  const formattedTime = new Intl.DateTimeFormat('en-US', {
+    hour: 'numeric',
+    minute: '2-digit',
+    hour12: true,
+  }).format(date)
+
+  return `${formattedDate} ${formattedTime}`
 }
 </script>

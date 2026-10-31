@@ -94,6 +94,37 @@
                 {{ visiblePrivateFields[field.name] ? 'Hide' : 'Show' }}
               </button>
             </div>
+            <div
+              v-else-if="field.type === 'date'"
+              class="relative w-full rounded-md focus-within:ring-3 focus-within:ring-blue-400/15"
+            >
+              <span
+                class="flex items-center justify-between px-3.5 py-2.5 border border-gray-300 rounded-md text-base text-gray-700"
+              >
+                <span>{{ formatDateDisplay(formData[field.name]) }}</span>
+                <svg
+                  aria-hidden="true"
+                  class="w-5 h-5 text-gray-700"
+                  xmlns="http://www.w3.org/2000/svg"
+                  viewBox="0 0 24 24"
+                  fill="none"
+                  stroke="currentColor"
+                  stroke-width="2"
+                >
+                  <rect x="3" y="5" width="18" height="16" rx="2" />
+                  <path d="M16 3v4M8 3v4M3 11h18" />
+                </svg>
+              </span>
+              <input
+                :id="field.name"
+                :aria-label="field.label"
+                type="date"
+                :value="normalizeDateValue(formData[field.name])"
+                @input="formData[field.name] = $event.target.value"
+                @click="openDatePicker"
+                class="absolute inset-0 w-full h-full opacity-0 cursor-pointer"
+              />
+            </div>
             <input
               v-else-if="field.type === 'number' || field.type === 'currency'"
               :id="field.name"
@@ -170,6 +201,30 @@ const formatCurrencyInput = (event, field) => {
 const emit = defineEmits(["form-submit"]);
 const handleSubmit = () => emit("form-submit");
 
+const normalizeDateValue = (value) => {
+  if (typeof value !== 'string' || !value) return value ?? '';
+  if (/^\d{4}-\d{2}-\d{2}$/.test(value)) return value;
+
+  const date = new Date(value);
+  if (Number.isNaN(date.getTime())) return '';
+
+  const year = date.getFullYear();
+  const month = String(date.getMonth() + 1).padStart(2, '0');
+  const day = String(date.getDate()).padStart(2, '0');
+  return `${year}-${month}-${day}`;
+};
+
+const formatDateDisplay = (value) => {
+  const dateValue = normalizeDateValue(value);
+  if (!dateValue) return '';
+  return `${dateValue.slice(8, 10)}/${dateValue.slice(5, 7)}/${dateValue.slice(0, 4)}`;
+};
+
+const openDatePicker = (event) => {
+  const input = event.currentTarget;
+  if (typeof input.showPicker === 'function') input.showPicker();
+};
+
 // Dynamic Auto-Mapping Watcher Engine with SSR safety guard check
 watch(() => props.rawData, (newDbData) => {
   if (!newDbData) return; 
@@ -215,6 +270,7 @@ const getSelectedLabel = (field) => {
       currency: field.currency || 'MYR',
     }).format(Number(value));
   }
+  if (field.type === 'date') return formatDateDisplay(value) || value;
   return value;
 };
 </script>

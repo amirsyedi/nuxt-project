@@ -27,6 +27,7 @@ const endIdleSession = async () => {
     console.error("Idle logout failed:", error);
   } finally {
     session.value = null;
+    localStorage.removeItem("auth-session");
     await navigateTo("/login");
   }
 };
@@ -41,6 +42,16 @@ const resetIdleTimer = () => {
 const activityEvents = ["pointerdown", "keydown", "scroll", "touchstart"];
 
 onMounted(() => {
+  const storedSession = localStorage.getItem("auth-session");
+  if (storedSession) {
+    try {
+      session.value = JSON.parse(storedSession);
+    } catch (error) {
+      console.error("Could not restore saved session:", error);
+      localStorage.removeItem("auth-session");
+    }
+  }
+
   activityEvents.forEach((event) => window.addEventListener(event, resetIdleTimer, { passive: true }));
   watch(session, resetIdleTimer, { immediate: true });
 });

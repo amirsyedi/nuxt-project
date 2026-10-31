@@ -8,11 +8,11 @@
     thickness="6px"
   />
 
-  <div class="flex min-h-screen items-center justify-center bg-zinc-900 px-4">
+  <div class="flex min-h-screen items-center justify-center bg-zinc-900 bg-[url('/bg-new.jpg')] bg-cover bg-center bg-no-repeat px-4">
     <div class="w-full max-w-md space-y-6 rounded-xl bg-gray-50 p-8 shadow-md">
       <div class="text-center">
         <h2 class="text-3xl font-bold tracking-tight text-gray-900 italic font-mono">WELCOME</h2>
-        <p class="mt-2 text-sm text-gray-600">Ada udang disebalik mee, tapi mee tak goreng lagi.</p>
+        <!-- <p class="mt-2 text-sm text-gray-600">LOGIN</p> -->
       </div>
 
       <div
@@ -146,7 +146,7 @@ const handleLogin = async () => {
       }
     );
     session.value = loginResponse;
-    // localStorage.setItem("auth-session", JSON.stringify(loginResponse));
+    localStorage.setItem("auth-session", JSON.stringify(loginResponse));
     await navigateTo("/");
   } catch (error) {
     console.log("error ::", error);

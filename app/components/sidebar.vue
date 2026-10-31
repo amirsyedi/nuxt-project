@@ -274,6 +274,7 @@ const logout = async () => {
     await performLogout();
     isLoading.value = false;
     session.value = null;
+    localStorage.removeItem("auth-session");
     isProfileOpen.value = false;
     await navigateTo("/login");
   } catch (error) {

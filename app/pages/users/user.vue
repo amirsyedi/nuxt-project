@@ -97,7 +97,7 @@ const myTableSchema = ref([
     isMono: true,
   },
   {
-    key: "kategori_pekerja",
+    key: "category",
     label: "Category",
     isMono: true,
   },

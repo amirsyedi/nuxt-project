@@ -59,11 +59,21 @@
       </div>
 
       <!-- Attendance Historical Audit Log Feed -->
-      <DynamicList
+      <!-- <DynamicList
         title="Attendance Records History"
         :schema="tableSchema"
         :data="attendanceLogs"
         :per-page="5"
+        class="mt-6"
+      /> -->
+      <DynamicList
+        title="Users Record"
+        :schema="myTableSchema"
+        :data="myTableData"
+        :actions="listActions"
+        :per-page="10"
+        :badge="false"
+        @refresh="refresh"
         class="mt-6"
       />
     </MainCard>
@@ -76,7 +86,10 @@ import { ref, onMounted, onBeforeUnmount } from "vue";
 const currentTimeString = ref("--:--:--");
 const currentDateString = ref("Loading date...");
 const isClockedIn = ref(false);
+import { useApi } from "../../../services/attendance.js";
 
+const { getAttendanceByUserId } = useApi();
+const session = useState("auth_session", () => null);
 // Active local telemetry array feeding live markup views
 const attendanceLogs = ref([]);
 
@@ -87,13 +100,19 @@ let userCoordinates = { lat: 0, lng: 0 };
 let currentDistanceCalculated = "—";
 
 // Table Blueprint Structural Configurations
-const tableSchema = ref([
-  { key: "type", label: "Activity Type", isBold: true },
-  { key: "date", label: "Log Date" },
-  { key: "time", label: "Log Time" },
-  { key: "coords", label: "GPS Coordinates", isMono: true },
-  { key: "distance", label: "Distance From Office" },
+const myTableSchema = ref([
+  { key: "activity", label: "Activity", isBold: true },
+  { key: "clock_in_at", label: "Clock In", type: "datetime-local" },
+  { key: "clock_out_at", label: "Clock Out", type: "datetime-local" },
+  // { key: "coords", label: "GPS Coordinates", isMono: true },
+  // { key: "distance", label: "Distance From Office" },
 ]);
+
+const getList = async () => {
+  const users = await getAttendanceByUserId(session.value?.user?.id);
+  myTableData.value = Array.isArray(users) ? users : users ? [users] : [];
+};
+const myTableData = ref([]);
 
 // Primary Office Geolocation: Property Management Division (BPH), Block B3, Putrajaya
 const OFFICE_COORDS = { lat: 2.9366, lng: 101.6902 };
@@ -169,10 +188,13 @@ const handleClockAction = (actionType) => {
   });
 };
 
+const refresh = () => getList();
+
 onMounted(() => {
   updateClock();
   timerId = setInterval(updateClock, 1000);
   verifyLocation();
+  getList();
 });
 
 onBeforeUnmount(() => {

@@ -140,8 +140,8 @@ const schemaForm = {
           colwidth: 6,
           fields: [
             { 
-              name: "kategori_pekerja", 
-              label: "Kategori Pekerja", 
+              name: "category", 
+              label: "Category", 
               type: "select",
               viewOnly: false,
               options: [
@@ -155,8 +155,8 @@ const schemaForm = {
           colwidth: 6,
           fields: [
             { 
-              name: "gaji_pekerja", 
-              label: "Gaji Pekerja", 
+              name: "salary", 
+              label: "Salary", 
               type: "currency",
               viewType: "private",
               // viewOnly: true 
@@ -167,10 +167,10 @@ const schemaForm = {
           colwidth: 6,
           fields: [
             { 
-              name: "tarikhMula", 
-              label: "Tarikh Mula", 
+              name: "start_date", 
+              label: "Start Date", 
               type: "date", 
-              viewOnly: true 
+              // viewOnly: true 
             }
           ],
         },
@@ -178,10 +178,10 @@ const schemaForm = {
           colwidth: 6,
           fields: [
             { 
-              name: "tarikhTamat", 
-              label: "Tarikh Tamat", 
+              name: "end_date", 
+              label: "End Date", 
               type: "date", 
-              viewOnly: true 
+              // viewOnly: true 
             }
           ],
         },
@@ -197,7 +197,7 @@ const profileData = ref({
   full_name: "",
   email: "",
   department: "",
-  gajiPekerja: 0
+  salary: 0
 });
 
 onMounted(() => {
