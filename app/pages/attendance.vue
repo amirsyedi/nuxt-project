@@ -43,9 +43,15 @@
         <div class="bg-white border border-gray-200 rounded-2xl p-6 flex flex-col justify-center gap-3 shadow-sm">
           <button
             @click="handleClockAction('Clock In')"
-            :disabled="isClockedIn"
+            :disabled="isClockedIn || isAttendanceLoading"
             class="w-full bg-emerald-400 text-slate-900 hover:bg-emerald-500 disabled:opacity-40 disabled:cursor-not-allowed py-3 rounded-xl text-sm font-bold transition duration-200 shadow-sm cursor-pointer"
           >
+            <MainSpinner
+              :is-loading="clockActionLoading === 'in'"
+              size="16px"
+              color="#0f172a"
+              thickness="2px"
+            />
             Clock In
           </button>
           <button
@@ -53,6 +59,12 @@
             :disabled="!isClockedIn"
             class="w-full bg-slate-100 text-slate-700 hover:bg-slate-200 disabled:opacity-40 disabled:cursor-not-allowed py-3 rounded-xl text-sm font-bold transition duration-200 cursor-pointer"
           >
+            <MainSpinner
+              :is-loading="clockActionLoading === 'out'"
+              size="16px"
+              color="#334155"
+              thickness="2px"
+            />
             Clock Out
           </button>
         </div>
@@ -71,7 +83,7 @@
         :schema="myTableSchema"
         :data="myTableData"
         :actions="listActions"
-        :per-page="10"
+        :per-page="5"
         :badge="false"
         @refresh="refresh"
         class="mt-6"
@@ -86,13 +98,17 @@ import { ref, onMounted, onBeforeUnmount } from "vue";
 const currentTimeString = ref("--:--:--");
 const currentDateString = ref("Loading date...");
 const isClockedIn = ref(false);
+const isAttendanceLoading = ref(true);
+const clockActionLoading = ref("");
 import { useApi } from "../../../services/attendance.js";
 
-const { getAttendanceByUserId } = useApi();
-const session = useState("auth_session", () => null);
-// Active local telemetry array feeding live markup views
-const attendanceLogs = ref([]);
+const { 
+  getAttendanceByUserId,
+  attendanceClockIn,
+  attendanceClockOut
+} = useApi();
 
+const session = useState("auth_session", () => null);
 const geoStatus = ref("checking");
 const geoMessage = ref("Connecting to satellite perimeter...");
 let timerId = null;
@@ -101,16 +117,36 @@ let currentDistanceCalculated = "—";
 
 // Table Blueprint Structural Configurations
 const myTableSchema = ref([
-  { key: "activity", label: "Activity", isBold: true },
-  { key: "clock_in_at", label: "Clock In", type: "datetime-local" },
-  { key: "clock_out_at", label: "Clock Out", type: "datetime-local" },
-  // { key: "coords", label: "GPS Coordinates", isMono: true },
-  // { key: "distance", label: "Distance From Office" },
+  { 
+    key: "activity", 
+    label: "Activity", 
+    isMono: true 
+  },
+  { 
+    key: "clock_in_at", 
+    label: "Clock In", 
+    type: "datetime-local", 
+    isMono: true 
+  },
+  { 
+    key: "clock_out_at", 
+    label: "Clock Out", 
+    type: "datetime-local", 
+    isMono: true 
+  },
 ]);
 
 const getList = async () => {
-  const users = await getAttendanceByUserId(session.value?.user?.id);
-  myTableData.value = Array.isArray(users) ? users : users ? [users] : [];
+  isAttendanceLoading.value = true;
+  try {
+    const records = await getAttendanceByUserId(session.value?.user?.id);
+    myTableData.value = Array.isArray(records) ? records : records ? [records] : [];
+    isClockedIn.value = myTableData.value.some(
+      (record) => record.clock_in_at && !record.clock_out_at,
+    );
+  } finally {
+    isAttendanceLoading.value = false;
+  }
 };
 const myTableData = ref([]);
 
@@ -171,21 +207,25 @@ const verifyLocation = () => {
   );
 };
 
-const handleClockAction = (actionType) => {
-  const now = new Date();
-  
-  const coordsString = userCoordinates.lat && userCoordinates.lng 
-    ? `${userCoordinates.lat.toFixed(6)}, ${userCoordinates.lng.toFixed(6)}` 
-    : "Coordinate Error";
+const handleClockAction = async (actionType) => {
+  const userId = session.value?.user?.id;
+  if (!userId || clockActionLoading.value) return;
 
-  isClockedIn.value = actionType === "Clock In";
-  attendanceLogs.value.unshift({
-    type: actionType,
-    date: now.toLocaleDateString("en-US", { year: "numeric", month: "2-digit", day: "2-digit" }),
-    time: now.toLocaleTimeString("en-US"),
-    coords: coordsString,
-    distance: currentDistanceCalculated,
-  });
+  clockActionLoading.value = actionType === "Clock In" ? "in" : "out";
+  try {
+    const result = actionType === "Clock In"
+      ? await attendanceClockIn(userId)
+      : await attendanceClockOut(userId);
+
+    if (result) {
+      isClockedIn.value = actionType === "Clock In";
+      await getList();
+    }
+  } catch (error) {
+    console.error("Failed to update attendance:", error);
+  }
+
+  clockActionLoading.value = "";
 };
 
 const refresh = () => getList();

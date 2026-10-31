@@ -30,7 +30,7 @@
       <!-- FIXED: Changed to your customized folder structure naming convention component -->
       <MainBreadcrumb />
 
-      <div
+      <!-- <div
         v-if="isSaved"
         class="bg-emerald-300 border border-emerald-200 text-emerald-800 p-4 rounded-xl text-sm font-medium mb-4"
       >
@@ -42,7 +42,7 @@
         class="mb-4 rounded-lg border border-red-200 bg-red-50 p-4 text-sm text-red-700"
       >
         {{ errorMessage }}
-      </div>
+      </div> -->
 
       <!-- Your Dynamic Form Component integrates here -->
       <DynamicForm
@@ -83,8 +83,9 @@
 import { onMounted, ref } from "vue";
 import { useApi } from "../../services/users.js";
 
+const { $swal } = useNuxtApp();
 const { 
-  getUsers, 
+  getUserById, 
   createUser, 
   updateUser 
 } = useApi();
@@ -98,20 +99,117 @@ const openModal = () => {
   isModalOpen.value = true;
 };
 
-// 1. Map out your custom input schema configuration block
+const profileData = ref({
+  id: null,
+  username: null,
+  role: null,
+  full_name: null,
+  email: null,
+  department: null,
+  gajiPekerja: 0
+});
+
+const loadProfile = async () => {
+  isLoading.value = true;
+  errorMessage.value = "";
+  await getUserById(1).then(user => {
+    isLoading.value = false;
+    if (user) {
+      Object.assign(profileData.value, user);
+    }
+  }).catch(error => {
+    errorMessage.value = error.data?.statusMessage || error.message || "Gagal memuatkan profil.";
+    isLoading.value = false;
+  })
+};
+
+const saveProfile = async () => {
+  if (await $swal.confirm("Adakah anda pasti ingin menyimpan profil ini?", "Sahkan")) {
+    isLoading.value = true;
+    await updateUser(profileData.value.id, profileData.value).then((response) => {
+      isLoading.value = false;
+      Object.assign(profileData.value, response);
+      console.log("response",response);
+      nextTick(() => {
+        $swal.success("Profil berjaya dikemaskini!", "Berjaya");  
+      }); 
+    }).catch(error => {
+      isLoading.value = false;
+      $swal.danger(error.data?.statusMessage || error.message || "Gagal menyimpan profil.", "Gagal menyimpan");
+    });
+  }
+ 
+  
+  // try {
+  //   const savedUser = profileData.value.id ? await updateUser(profileData.value.id, profileData.value) : await createUser(profileData.value);
+
+  //   if (savedUser && typeof savedUser === "object") {
+  //     Object.assign(profileData.value, savedUser);
+  //   }
+  //   isSaved.value = true;
+  //   await $swal.success("Profil berjaya dikemaskini!", "Berjaya");
+  //   setTimeout(() => {
+  //     isSaved.value = false;
+  //   }, 3000);
+  // } catch (error) {
+  //   errorMessage.value = error.data?.statusMessage || error.message || "Gagal menyimpan profil.";
+  //   await $swal.danger(errorMessage.value, "Gagal menyimpan");
+  //   setTimeout(() => {
+  //     errorMessage.value = "";
+  //   }, 3000);
+  // } finally {
+  //   isLoading.value = false;
+  // }
+};
+
+
+
+//...........................................................................................................
+//....SSSSSSSSSS.......CCCCCCCCCC.....HHHH......HHHH...EEEEEEEEEEEEEE..MMMMMMM....MMMMMMM......AAAAAA........
+//...SSSSSSSSSSSS.....CCCCCCCCCCCC....HHHH......HHHH...EEEEEEEEEEEEEE..MMMMMMM....MMMMMMM.....AAAAAAAA.......
+//..SSSSSSSSSSSSS....CCCCCCCCCCCCCC...HHHH......HHHH...EEEEEEEEEEEEEE..MMMMMMM....MMMMMMM.....AAAAAAAA.......
+//..SSSSSS.SSSSSSS..CCCCCCCCCCCCCCCC..HHHH......HHHH...EEEEE...........MMMMMMM...MMMMMMMM.....AAAAAAAAA......
+//..SSSSS....SSSSS..CCCCCC....CCCCC...HHHH......HHHH...EEEEE...........MMMMMMMM..MMMMMMMM....AAAAAAAAAA......
+//..SSSSSSS.........CCCCC.............HHHH......HHHH...EEEEE...........MMMMMMMM..MMMMMMMM....AAAAAAAAAA......
+//..SSSSSSSSSS.....SCCCCC.............HHHH......HHHH...EEEEE...........MMMMMMMM.MMMMMMMMM....AAAAAAAAAAA.....
+//...SSSSSSSSSSSS..SCCCC..............HHHHHHHHHHHHHH...EEEEEEEEEEEEE...MMMMMMMMMMMMMMMMMM...AAAAA..AAAAA.....
+//....SSSSSSSSSSSS.SCCCC..............HHHHHHHHHHHHHH...EEEEEEEEEEEEE...MMMMMMMMMMMMMMMMMM...AAAAA..AAAAA.....
+//......SSSSSSSSSS.SCCCC..............HHHHHHHHHHHHHH...EEEEEEEEEEEEE...MMMMMMMMMMMMMMMMMM...AAAAA...AAAAA....
+//..........SSSSSS.SCCCCC.............HHHH......HHHH...EEEEE...........MMMMMMMMMMMMMMMMMM..AAAAAAAAAAAAAA....
+//.SSSSS......SSSSS.CCCCC.............HHHH......HHHH...EEEEE...........MMMMMMMMMMMMMMMMMM..AAAAAAAAAAAAAAA...
+//.SSSSSS....SSSSSS.CCCCCC....CCCCCC..HHHH......HHHH...EEEEE...........MMMMMMMMMMMM.MMMMM..AAAAAAAAAAAAAAA...
+//..SSSSSSSSSSSSSS..CCCCCCCCCCCCCCCC..HHHH......HHHH...EEEEE...........MMMMM.MMMMMM.MMMMM.AAAAAA.....AAAAA...
+//..SSSSSSSSSSSSSS...CCCCCCCCCCCCCC...HHHH......HHHH...EEEEEEEEEEEEEE..MMMMM.MMMMMM.MMMMM.AAAAA......AAAAAA..
+//...SSSSSSSSSSSS.....CCCCCCCCCCCCC...HHHH......HHHH...EEEEEEEEEEEEEE..MMMMM.MMMMMM.MMMMMMAAAAA.......AAAAA..
+//....SSSSSSSSSS.......CCCCCCCCCC.....HHHH......HHHH...EEEEEEEEEEEEEE..MMMM..MMMMM..MMMMMMAAAAA.......AAAAA..
+//...........................................................................................................
 const schemaForm = {
   title: "Maklumat Profil Pengguna",
   fieldSets: [
     {
-      legend: "Sistem Akaun (View-Only)",
+      legend: "Butiran Akaun",
       colGroups: [
         {
           colwidth: 6,
-          fields: [{ name: "username", label: "Nama Pengguna (Username)", type: "text", viewOnly: true }],
+          fields: [
+            { 
+              name: "username", 
+              label: "Login ID", 
+              type: "text",
+              viewOnly: true 
+            }
+          ],
         },
         {
           colwidth: 6,
-          fields: [{ name: "role", label: "Peranan Akses (Role)", type: "text", viewOnly: true }],
+          fields: [
+            { 
+              name: "role", 
+              label: "Role", 
+              type: "text", 
+              viewOnly: true 
+            }
+          ],
         },
       ],
     },
@@ -123,7 +221,7 @@ const schemaForm = {
           fields: [
             { 
               name: "ic_number", 
-              label: "No. Kad Pengenalan", 
+              label: "ID Number", 
               type: "text", viewOnly: true 
             }
           ],
@@ -133,7 +231,7 @@ const schemaForm = {
           fields: [
             { 
               name: "full_name", 
-              label: "Nama Penuh", 
+              label: "Name", 
               type: "text", 
               viewOnly: false 
             }
@@ -144,7 +242,7 @@ const schemaForm = {
           fields: [
             { 
               name: "email", 
-              label: "Emel", 
+              label: "Email", 
               type: "email", 
               viewOnly: false 
             }
@@ -155,7 +253,7 @@ const schemaForm = {
           fields: [
             {
               name: "department",
-              label: "Bahagian / Jabatan",
+              label: "Department", 
               type: "select",
               viewOnly: false,
               options: [
@@ -169,19 +267,19 @@ const schemaForm = {
       ],
     },
     {
-      legend: "Maklumat Kontrak",
+      legend: "Contract Details",
       colGroups: [
         {
           colwidth: 6,
           fields: [
             { 
-              name: "kategori_pekerja", 
-              label: "Kategori Pekerja", 
+              name: "category", 
+              label: "Category", 
               type: "select",
               viewOnly: false,
               options: [
-                { value: "Tetap", label: "Sepenuh Masa" },
-                { value: "Kontrak", label: "Kontrak" },
+                { value: "Tetap", label: "Full Time" },
+                { value: "Kontrak", label: "Contract" },
               ],
             }
           ],
@@ -190,8 +288,8 @@ const schemaForm = {
           colwidth: 6,
           fields: [
             { 
-              name: "gaji_pekerja", 
-              label: "Gaji Pekerja", 
+              name: "salary", 
+              label: "Salary (RM)", 
               type: "currency",
               viewType: "private",
               // viewOnly: true 
@@ -202,8 +300,8 @@ const schemaForm = {
           colwidth: 6,
           fields: [
             { 
-              name: "tarikhMula", 
-              label: "Tarikh Mula", 
+              name: "start_date", 
+              label: "Start Date", 
               type: "date", 
               viewOnly: true 
             }
@@ -213,8 +311,8 @@ const schemaForm = {
           colwidth: 6,
           fields: [
             { 
-              name: "tarikhTamat", 
-              label: "Tarikh Tamat", 
+              name: "end_date", 
+              label: "End Date", 
               type: "date", 
               viewOnly: true 
             }
@@ -224,63 +322,6 @@ const schemaForm = {
     },
   ],
 };
-
-const profileData = ref({
-  id: null,
-  username: "Guest",
-  role: "User",
-  full_name: "",
-  email: "",
-  department: "",
-  gajiPekerja: 0
-});
-
-const loadProfile = async () => {
-  isLoading.value = true;
-  errorMessage.value = "";
-
-  try {
-    const users = await getUsers();
-    const user = Array.isArray(users) ? users[0] : users;
-    console.log("Loaded user:", user);
-    if (user) {
-      Object.assign(profileData.value, user);
-    }
-  } catch (error) {
-    errorMessage.value = error.data?.statusMessage || error.message || "Gagal memuatkan profil.";
-  } finally {
-    isLoading.value = false;
-  }
-};
-
-const saveProfile = async () => {
-  isSaved.value = false;
-  errorMessage.value = "";
-  isLoading.value = true;
-
-  try {
-    const savedUser = profileData.value.id ? await updateUser(profileData.value.id, profileData.value) : await createUser(profileData.value);
-
-    if (savedUser && typeof savedUser === "object") {
-      Object.assign(profileData.value, savedUser);
-    }
-    isSaved.value = true;
-    setTimeout(() => {
-      isSaved.value = false;
-    }, 3000);
-  } catch (error) {
-    errorMessage.value = error.data?.statusMessage || error.message || "Gagal menyimpan profil.";
-    setTimeout(() => {
-      errorMessage.value = "";
-    }, 3000);
-  } finally {
-    isLoading.value = false;
-  }
-};
-
-// const backToList = () => {
-//   this.$router.back('/');
-// }
 
 onMounted(loadProfile);
 </script>

@@ -1,5 +1,5 @@
 <template>
-  <div class="bg-white border border-gray-200 rounded-2xl shadow-xs overflow-hidden w-full">
+  <div class="bg-white border border-gray-200 rounded-2xl shadow-md overflow-hidden w-full">
     
     <!-- Table Header block -->
     <div class="px-4 py-4 border-b border-gray-100 flex items-center justify-between bg-white">

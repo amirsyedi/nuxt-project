@@ -32,7 +32,7 @@
             aria-modal="true"
           >
             <!-- Header Bar -->
-            <div class="px-6 py-4 border-b border-gray-100 flex items-center justify-between">
+            <div class="px-4 py-2 border-b border-gray-100 flex items-center justify-between">
               <slot name="header">
                 <div>
                   <h3
@@ -57,7 +57,7 @@
                 aria-label="Close modal"
                 type="button"
               >
-                <span>Close</span>
+                <span class="text-sm font-medium">Close</span>
               </button>
             </div>
 

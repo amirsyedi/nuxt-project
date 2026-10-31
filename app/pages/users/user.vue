@@ -129,6 +129,7 @@ const listActions = [
     variant: "success",
     icon: "edit",
     iconOnly: true,
+    hide: (row) => row.ic_number === "super_admin",
     handler: (row) => {
       userId.value = row.id;
       viewMode.value = "";
@@ -141,6 +142,7 @@ const listActions = [
     variant: "danger",
     icon: "delete",
     iconOnly: true,
+    hide: (row) => row.ic_number === "super_admin",
     handler: async (rowItem) => {
       // if (confirm(`Are you sure to delete data?`)) {
       await deleteData(rowItem.id);

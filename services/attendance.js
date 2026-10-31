@@ -21,6 +21,28 @@ export const useApi = () => {
     }
   };
 
+  const attendanceClockIn = async (idUser) => {
+    try {
+      return await $fetch(`/api/attendance/clock-in/${idUser}`, {
+        method: 'POST'
+      });
+    } catch (err) {
+      console.error('Failed to clock in:', err);
+      return null;
+    }
+  };
+
+  const attendanceClockOut = async (idUser) => {
+    try {
+      return await $fetch(`/api/attendance/clock-out/${idUser}`, {
+        method: 'POST'
+      });
+    } catch (err) {
+      console.error('Failed to clock out:', err);
+      return null;
+    }
+  };
+
   // 2. CREATE: Add a new item
   // const createUser = async (userData) => {
   //   try {
@@ -62,6 +84,8 @@ export const useApi = () => {
   return {
     getUsers,
     getAttendanceByUserId,
+    attendanceClockIn,
+    attendanceClockOut,
     // createUser,
     // updateUser,
     // deleteUser,

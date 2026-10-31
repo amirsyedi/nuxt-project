@@ -8,25 +8,8 @@
       color="#3498db"
       thickness="6px"
     />
-    <MainCard>
-      <!-- FIXED: Changed to your customized folder structure naming convention component -->
-      <MainBreadcrumb />
-
-      <div
-        v-if="isSaved"
-        class="bg-emerald-300 border border-emerald-200 text-emerald-800 p-4 rounded-xl text-sm font-medium mb-4"
-      >
-        Profil berjaya dikemaskini!
-      </div>
-
-      <div
-        v-if="errorMessage"
-        class="mb-4 rounded-lg border border-red-200 bg-red-50 p-4 text-sm text-red-700"
-      >
-        {{ errorMessage }}
-      </div>
-
-      <!-- Your Dynamic Form Component integrates here -->
+    <!-- <MainCard> -->
+      <!-- <MainBreadcrumb /> -->
       <DynamicForm
         :schema="schemaForm"
         :form-raw-data="profileData"
@@ -45,14 +28,17 @@
           Simpan
         </button>
       </div>
-    </MainCard>
+    <!-- </MainCard> -->
   </div>
 </template>
 
 <script setup>
-import { onMounted, ref } from "vue";
+import { 
+  onMounted, 
+  ref 
+} from "vue";
 import { useApi } from "../../../services/users.js";
-
+const { $swal } = useNuxtApp();
 const props = defineProps({
   propIdUser: { type: [String, Number], default: null },
   viewMode: { type: String },
@@ -65,30 +51,44 @@ const isLoading = ref(false);
 const errorMessage = ref("");
 
 const schemaForm = {
-  title: "Maklumat Profil Pengguna",
+  title: "",
   fieldSets: [
     {
-      legend: "Sistem Akaun (View-Only)",
+      legend: "Account Details",
       colGroups: [
         {
           colwidth: 6,
-          fields: [{ name: "username", label: "Nama Pengguna (Username)", type: "text", viewOnly: true }],
+          fields: [
+            { 
+              name: "username", 
+              label: "Login ID", 
+              type: "text",
+              viewOnly: true 
+            }
+          ],
         },
         {
           colwidth: 6,
-          fields: [{ name: "role", label: "Peranan Akses (Role)", type: "text", viewOnly: true }],
+          fields: [
+            { 
+              name: "role", 
+              label: "Role", 
+              type: "text", 
+              viewOnly: true 
+            }
+          ],
         },
       ],
     },
     {
-      legend: "Butiran Peribadi",
+      legend: "Personal Details",
       colGroups: [
         {
           colwidth: 12,
           fields: [
             { 
               name: "ic_number", 
-              label: "No. Kad Pengenalan", 
+              label: "ID Number", 
               type: "text", viewOnly: true 
             }
           ],
@@ -98,7 +98,7 @@ const schemaForm = {
           fields: [
             { 
               name: "full_name", 
-              label: "Nama Penuh", 
+              label: "Name", 
               type: "text", 
               viewOnly: false 
             }
@@ -109,7 +109,7 @@ const schemaForm = {
           fields: [
             { 
               name: "email", 
-              label: "Emel", 
+              label: "Email", 
               type: "email", 
               viewOnly: false 
             }
@@ -120,7 +120,7 @@ const schemaForm = {
           fields: [
             {
               name: "department",
-              label: "Bahagian / Jabatan",
+              label: "Department", 
               type: "select",
               viewOnly: false,
               options: [
@@ -134,7 +134,7 @@ const schemaForm = {
       ],
     },
     {
-      legend: "Maklumat Kontrak",
+      legend: "Contract Details",
       colGroups: [
         {
           colwidth: 6,
@@ -145,8 +145,8 @@ const schemaForm = {
               type: "select",
               viewOnly: false,
               options: [
-                { value: "Tetap", label: "Sepenuh Masa" },
-                { value: "Kontrak", label: "Kontrak" },
+                { value: "Tetap", label: "Full Time" },
+                { value: "Kontrak", label: "Contract" },
               ],
             }
           ],
@@ -156,7 +156,7 @@ const schemaForm = {
           fields: [
             { 
               name: "salary", 
-              label: "Salary", 
+              label: "Salary (RM)", 
               type: "currency",
               viewType: "private",
               // viewOnly: true 
@@ -181,7 +181,7 @@ const schemaForm = {
               name: "end_date", 
               label: "End Date", 
               type: "date", 
-              // viewOnly: true 
+              // viewOnly: true
             }
           ],
         },
@@ -200,10 +200,6 @@ const profileData = ref({
   salary: 0
 });
 
-onMounted(() => {
-  getData();
-});
-
 const getData = async () => {
   isLoading.value = true;
   await getUserById(props.propIdUser).then(res => {
@@ -217,29 +213,24 @@ const getData = async () => {
 };
 
 const saveProfile = async () => {
-  isSaved.value = false;
-  errorMessage.value = "";
-  isLoading.value = true;
-
-  try {
-    const savedUser = await updateUser(profileData.value.id, profileData.value);
-
-    if (savedUser && typeof savedUser === "object") {
-      Object.assign(profileData.value, savedUser);
-    }
-    await props.refreshUsers();
-    isSaved.value = true;
-    setTimeout(() => {
-      isSaved.value = false;
-    }, 3000);
-  } catch (error) {
-    errorMessage.value = error.data?.statusMessage || error.message || "Gagal menyimpan profil.";
-    setTimeout(() => {
-      errorMessage.value = "";
-    }, 3000);
-  } finally {
-    isLoading.value = false;
+  if (await $swal.confirm("Adakah anda pasti ingin menyimpan profil ini?", "Sahkan")) {
+    isLoading.value = true;
+    await updateUser(profileData.value.id, profileData.value).then((response) => {
+      isLoading.value = false;
+      Object.assign(profileData.value, response);
+      console.log("response",response);
+      nextTick(() => {
+        props.refreshUsers();
+        $swal.success("Profil berjaya dikemaskini!", "Berjaya");  
+      }); 
+    }).catch(error => {
+      isLoading.value = false;
+      $swal.danger(error.data?.statusMessage || error.message || "Gagal menyimpan profil.", "Gagal menyimpan");
+    });
   }
-};
+}
 
+onMounted(() => {
+  getData();
+});
 </script>
